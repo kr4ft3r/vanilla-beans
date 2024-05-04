@@ -1,7 +1,14 @@
 class HashTable {
         constructor() {
-                this.table = new Array[127];
+                this.table = new Array(127);
                 this.size = 0;
+        }
+        
+        *[Symbol.iterator]() {
+                for(let i = 0; i < this.size; i++)
+                        if(this.table[i].length) continue;
+                        else for(let y = 0; y < this.table[i].length; y++)
+                                yield this.table[i][y][1];
         }
         
         _hash(key) {

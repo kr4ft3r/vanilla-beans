@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+        <head>
+                <link rel="stylesheet" type="text/css" href="../build/vanilla-beans.css">
+                <script src="../build/vanilla-beans.js"></script>
+                <script type="text/javascript">
+                        const demoData = {
+                                sprites: [],
+                        };
+                        
+                        function domReady(fn) {
+                                // If we're early to the party
+                                document.addEventListener("DOMContentLoaded", fn);
+                                // If late; I mean on time.
+                                if (document.readyState === "interactive" || document.readyState === "complete" ) {
+                                        fn();
+                                }
+                        }
+
+                        domReady(() => domLoaded());
+
+                        function domLoaded() {
+                                console.log("hello");
+                                const spriteDef = new SpriteDefinition('test', './heart.png', 64, 64);
+                                let sprite = new Sprite('heart', spriteDef, {position:{x:100, y:100}, scale:{x:1.0,y:1.0}});
+                                const containerElem = document.getElementById('test-container');
+                                console.log("container="+containerElem);
+                                Sprite.addToContainer(containerElem, sprite);
+                                const spriteElem = document.getElementById('sprite_'+sprite.definition.id+"_"+sprite.id);
+                                let time = 0.0;
+                                let xMod = 300.0;
+                                
+                                demoData.sprite = sprite;
+                                demoData.spriteElem = spriteElem;
+                                
+                                window.requestAnimationFrame(frame);
+                                
+                                
+                        }
+                        
+                        function frame(timestamp) {
+                                const deltaTime = timestamp * 0.001;
+                                const sprite = demoData.sprite;
+                                if (sprite.transform.position.x >= 924) xMod = -300.0;
+                                else if (sprite.transform.position.x <= 100) xMod = 300.0;
+                                sprite.transform.position.x += xMod*0.02;
+                                sprite.transform.position.y = 100 + Math.sin(deltaTime*3)*100;
+                                sprite.update(demoData.spriteElem);
+                                window.requestAnimationFrame(frame);
+                        }
+                        
+                </script>
+        </head>
+        <body style="margin:0;padding:0;background-color:#000000;color: aquamarine;">
+                <div id="test-container" style="width:1024px; height:768px; margin: 0 auto; position: relative; background-color:darkslateblue">
+                        <h1 style="display:block;position:absolute">Vanilla Beans</h1>
+                </div>
+        </body>
+</html>
