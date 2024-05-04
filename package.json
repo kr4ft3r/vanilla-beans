@@ -5,8 +5,9 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build:min": "./combine-files.js src/ build/vanilla-beans.js \"\n\n\" && uglifyjs --compress -o build/vanilla-beans.min.js -- build/vanilla-beans.js",
-    "build": "npm run build:min",
+    "build:css": "./combine-files.js css/ build/vanilla-beans.css \"\n\n\"",
+    "build:js": "./combine-files.js src/ build/vanilla-beans.js \"\n\n\" && uglifyjs --compress -o build/vanilla-beans.min.js -- build/vanilla-beans.js",
+    "build": "mkdir -p build && npm run build:js && npm run build:css",
     "watch:js": "onchange \"src/**/*.js\" -- npm run build",
     "watch": "npm-run-all --parallel watch:*"
   },
