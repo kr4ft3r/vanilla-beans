@@ -55,12 +55,7 @@
                                 
                                 demoData.sprites.push(sprite);
                                 demoData.spritesData.push({directionX:1, timeAlive:0.0});
-                                demoData.collisionGrid.insert(sprite, {
-                                        x1: sprite.transform.position.x,
-                                        y1: sprite.transform.position.y,
-                                        x2: sprite.transform.position.x + sprite.definition.width,
-                                        y2: sprite.transform.position.y + sprite.definition.height,
-                                });
+                                demoData.collisionGrid.insert(sprite, sprite.getBoundingBox());
                         }
                         
                         function spriteContainerClicked(event) {
@@ -76,12 +71,7 @@
                                         if (demoData.sprites.length == 3) {
                                                 const sprite = hits[0];
                                                 Sprite.removeFromContainer(sprite);
-                                                demoData.collisionGrid.remove(sprite, { // TODO
-                                                        x1: sprite.transform.position.x,
-                                                        y1: sprite.transform.position.y,
-                                                        x2: sprite.transform.position.x + 64.0,
-                                                        y2: sprite.transform.position.y + 64.0,
-                                                });
+                                                demoData.collisionGrid.remove(sprite, sprite.getBoundingBox());
                                         } else {
                                                 createSprite();
                                         }
@@ -110,12 +100,7 @@
                                         const newY = 100 + Math.sin(data.timeAlive*3)*60;
                                         movement.x -= newX;
                                         movement.y -= newY;
-                                        demoData.collisionGrid.update(sprite, {
-                                                x1: sprite.transform.position.x,
-                                                y1: sprite.transform.position.y,
-                                                x2: sprite.transform.position.x + 64.0,
-                                                y2: sprite.transform.position.y + 64.0,
-                                        }, movement);
+                                        demoData.collisionGrid.update(sprite, sprite.getBoundingBox(), movement);
                                         sprite.transform.position.x = newX;
                                         sprite.transform.position.y = newY;
                                         sprite.update();
