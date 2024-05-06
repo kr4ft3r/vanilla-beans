@@ -3,14 +3,12 @@ class HashTable {
                 this.table = new Array(127);
                 this.size = 0;
         }
-        
         *[Symbol.iterator]() {
                 for(let i = 0; i < this.size; i++)
                         if(this.table[i].length) continue;
                         else for(let y = 0; y < this.table[i].length; y++)
                                 yield this.table[i][y][1];
         }
-        
         _hash(key) {
                 let hash = 0;
                 for(let i = 0; i < key.length; i++) {
@@ -19,7 +17,6 @@ class HashTable {
                 
                 return hash % this.table.length;
         }
-        
         set(key, value) {
                 const index = this._hash(key);
                 if (this.table[index]) {
@@ -38,7 +35,6 @@ class HashTable {
                 }
                 this.size++;
         }
-        
         get(key) {
                 const index = this._hash(key);
                 if (this.table[index]) {
@@ -50,7 +46,6 @@ class HashTable {
                 
                 return undefined;
         }
-        
         remove(key) {
                 const index = this._hash(key);
                 
@@ -67,7 +62,6 @@ class HashTable {
                 
                 return false;
         }
-        
         toString() {
                 let table = '';
                 this.table.forEach((values, index) => {

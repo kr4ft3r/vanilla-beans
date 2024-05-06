@@ -13,16 +13,13 @@ class Events {
 		this.eventListenerMap = {}
 		Events.instance = this;
 	}
-	
 	createEvent(eventName) {
 		this.eventListenerMap[eventName] = [];
 	}
-	
 	registerEventListener(object, eventName) {
 		if (this.eventListenerMap[eventName] === undefined) {console.warn("EVENT NOT REGISTERED: "+eventName); return;}
 		this.eventListenerMap[eventName].push(object);
 	}
-	
 	dispatch(eventName, data) {
 		if (this.eventListenerMap[eventName] === undefined) {console.warn("EVENT NOT REGISTERED: "+eventName); return;}
 		const handlerName = this.getEventHandlerName(eventName);
@@ -32,7 +29,6 @@ class Events {
 			listeners[i][handlerName](data);
 		}
 	}
-	
 	getEventHandlerName(eventName) {
 		return "on" + eventName.charAt(0).toUpperCase() + eventName.slice(1);
 	}
