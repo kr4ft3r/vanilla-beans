@@ -5,7 +5,11 @@
                 <script src="../build/vanilla-beans.js"></script>
                 <script type="text/javascript">
                         const demoData = {
+                                spriteDefinitions: {},
                                 sprites: [],
+                                spritesData: [], // Stuff otherwise encapsulated by game object
+                                containerElem: null,
+                                collisionGrid: null
                         };
                         
                         function domReady(fn) {
@@ -21,37 +25,109 @@
 
                         function domLoaded() {
                                 console.log("hello");
-                                const spriteDef = new SpriteDefinition('test', './heart.png', 64, 64);
-                                let sprite = new Sprite('heart', spriteDef, {position:{x:100, y:100}, scale:{x:1.0,y:1.0}});
+                                demoData.spriteDefinitions['heart'] = new SpriteDefinition('test', './heart.png', 64, 64);
                                 const containerElem = document.getElementById('test-container');
-                                console.log("container="+containerElem);
-                                Sprite.addToContainer(containerElem, sprite);
-                                const spriteElem = document.getElementById('sprite_'+sprite.definition.id+"_"+sprite.id);
-                                let time = 0.0;
-                                let xMod = 300.0;
+                                demoData.containerElem = containerElem;
                                 
-                                demoData.sprite = sprite;
-                                demoData.spriteElem = spriteElem;
+                                //demoData.spriteElem = spriteElem;
+                                demoData.collisionGrid = new FixedResolutionGrid(
+                                        128, 8, 6,
+                                        (s, p) => { const b = s.getBoundingBox();
+                                                return b.x1 <= p.x && b.y1 <= p.y &&
+                                                b.x2 >= p.x && b.y2 >= p.y;}
+                                        );
+                                createSprite();
+                                
+                                containerElem.addEventListener("click", spriteContainerClicked);
                                 
                                 window.requestAnimationFrame(frame);
                                 
-                                
                         }
                         
+                        function createSprite() {
+                                const spriteDef = demoData.spriteDefinitions['heart'];
+                                let sprite = new Sprite(
+                                        'heart'+demoData.sprites.length, 
+                                        spriteDef, 
+                                        {position: {x:100, y:100}, scale: {x:1.0,y:1.0}}
+                                );
+                                Sprite.addToContainer(demoData.containerElem, sprite);
+                                
+                                demoData.sprites.push(sprite);
+                                demoData.spritesData.push({directionX:1, timeAlive:0.0});
+                                demoData.collisionGrid.insert(sprite, {
+                                        x1: sprite.transform.position.x,
+                                        y1: sprite.transform.position.y,
+                                        x2: sprite.transform.position.x + sprite.definition.width,
+                                        y2: sprite.transform.position.y + sprite.definition.height,
+                                });
+                        }
+                        
+                        function spriteContainerClicked(event) {
+                                const rect = event.currentTarget.getBoundingClientRect();
+                                const point = {
+                                        x: event.clientX - rect.left,
+                                        y: event.clientY - rect.top
+                                }
+                                //console.log(point);
+                                const hits = demoData.collisionGrid.getAtPoint(point);
+                                console.log(hits);
+                                if (hits.length > 0) {
+                                        if (demoData.sprites.length == 3) {
+                                                const sprite = hits[0];
+                                                Sprite.removeFromContainer(sprite);
+                                                demoData.collisionGrid.remove(sprite, { // TODO
+                                                        x1: sprite.transform.position.x,
+                                                        y1: sprite.transform.position.y,
+                                                        x2: sprite.transform.position.x + 64.0,
+                                                        y2: sprite.transform.position.y + 64.0,
+                                                });
+                                        } else {
+                                                createSprite();
+                                        }
+                                }
+                        }
+                        
+                        var previousFrameTimestamp = null;
                         function frame(timestamp) {
-                                const deltaTime = timestamp * 0.001;
-                                const sprite = demoData.sprite;
-                                if (sprite.transform.position.x >= 924) xMod = -300.0;
-                                else if (sprite.transform.position.x <= 100) xMod = 300.0;
-                                sprite.transform.position.x += xMod*0.02;
-                                sprite.transform.position.y = 100 + Math.sin(deltaTime*3)*100;
-                                sprite.update(demoData.spriteElem);
+                                if (previousFrameTimestamp === null) previousFrameTimestamp = timestamp;
+                                const deltaTime = (timestamp - previousFrameTimestamp) * 0.001;
+
+                                for (let i = 0; i < demoData.sprites.length; i++) {
+                                        let sprite = demoData.sprites[i];
+                                        let data = demoData.spritesData[i];
+                                        data.timeAlive += deltaTime;
+                                        if (sprite.domElement === null) continue;
+                                        let xMod = 300;
+                                        if (sprite.transform.position.x >= 924) data.directionX = -1;
+                                        else if (sprite.transform.position.x <= 100) data.directionX = 1;
+                                        xMod *= data.directionX;
+                                        let movement = {
+                                                x: sprite.transform.position.x,
+                                                y: sprite.transform.position.y
+                                        };
+                                        const newX = sprite.transform.position.x + xMod*0.02;
+                                        const newY = 100 + Math.sin(data.timeAlive*3)*60;
+                                        movement.x -= newX;
+                                        movement.y -= newY;
+                                        demoData.collisionGrid.update(sprite, {
+                                                x1: sprite.transform.position.x,
+                                                y1: sprite.transform.position.y,
+                                                x2: sprite.transform.position.x + 64.0,
+                                                y2: sprite.transform.position.y + 64.0,
+                                        }, movement);
+                                        sprite.transform.position.x = newX;
+                                        sprite.transform.position.y = newY;
+                                        sprite.update();
+                                }
+                                
+                                previousFrameTimestamp = timestamp;
                                 window.requestAnimationFrame(frame);
                         }
                         
                 </script>
         </head>
-        <body style="margin:0;padding:0;background-color:#000000;color: aquamarine;">
+        <body style="margin:0;padding:0;background-color:#000000;color:#F3E5AB;">
                 <div id="test-container" style="width:1024px; height:768px; margin: 0 auto; position: relative; background-color:darkslateblue">
                         <h1 style="display:block;position:absolute">Vanilla Beans</h1>
                 </div>

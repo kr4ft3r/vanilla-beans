@@ -44,7 +44,7 @@ class HashTable {
                 if (this.table[index]) {
                         for (let i = 0; i < this.table[index].length; i++) {
                                 if (this.table[index][i][0] === key)
-                                        return this.table[index][i];
+                                        return this.table[index][i][1];
                         }
                 }
                 
