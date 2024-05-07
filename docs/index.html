@@ -36,7 +36,7 @@
                                                 return b.x1 <= p.x && b.y1 <= p.y &&
                                                 b.x2 >= p.x && b.y2 >= p.y;},
                                         (s1, s2) => { const b1 = s1.getBoundingBox(); const b2 = s2.getBoundingBox();
-                                                return b1.x1 < b2.x2 && b2.x1 < b1.x2 && b1.y1 < b2.y2 && b2.y1 < b1.y2;
+                                                return Collision.simpleBoxesOverlap(b1, b2);
                                         }
                                         );
                                 createSprite();
