@@ -9,12 +9,14 @@ class FixedResolutionGrid {
          * @param {number} gridWidth Number of cells per row
          * @param {number} gridHeight Number of cells per column
          * @param {FixedResolutionGrid~pointCollisionTest} pointCollisionTest Callback for point test
+         * @param {FixedResolutionGrid~elementsCollisionTest} elementsCollisionTest Callback for collision
          */
-        constructor(cellSize, gridWidth, gridHeight, pointCollisionTest) {
+        constructor(cellSize, gridWidth, gridHeight, pointCollisionTest, elementsCollisionTest) {
                 this.cellSize = cellSize;
                 this.width = gridWidth;
                 this.height = gridHeight;
                 this.pointCollisionTest = pointCollisionTest;
+                this.elementsCollisionTest = elementsCollisionTest;
                 this.cells = (new Array(gridHeight))
                         .fill(
                                 (new Array(gridWidth)).fill([], 0, gridWidth), 
@@ -88,9 +90,42 @@ class FixedResolutionGrid {
                 
                 return hits;
         }
+        /**
+         * Get all elements the given element is colliding with, using the provided elementsCollisionTest.
+         * @param {Object} value Grid element being tested
+         * @param {*} boundingBox {x1, y1, x2, y2} The element's bounding box
+         * @returns 
+         */
+        getCollisions(value, boundingBox) {
+                const cellX1 = Math.floor(boundingBox.x1 / this.cellSize);
+                const cellY1 = Math.floor(boundingBox.y1 / this.cellSize);
+                const cellX2 = Math.floor(boundingBox.x2 / this.cellSize);
+                const cellY2 = Math.floor(boundingBox.y2 / this.cellSize);
+                const cellsY = [cellY1, cellY2];
+                const cellsX = [cellX1, cellX2];
+                let hits = [];
+                for (let yi = 0; yi < cellsY.length; yi++) {
+                        const y = cellsY[yi];
+                        for (let xi = 0; xi < cellsX.length; xi++) {
+                                const x = cellsX[xi];
+                                const cell = this.cells[y][x];
+                                for (let i = 0; i < cell.length; i++) {
+                                        if (cell[i] === value) continue;
+                                        if (this.elementsCollisionTest(value, cell[i])) hits.push(cell[i]);
+                                }
+                        }
+                }
+                
+                return hits;
+        }
 }
 /**
  * @callback FixedResolutionGrid~pointCollisionTest
- * @param {Object} object Element of the grid, should probably contain a way to get bounding box
+ * @param {Object} object Element in the grid, should probably contain a way to get bounding box
  * @param {Object} point {x,y} Point of test, {x|0..cellSize*gridWidth}, {y|0..cellSize*gridHeight}
+ */
+/**
+ * @callback FixedResolutionGrid~elementsCollisionTest
+ * @param {Object} object1 Element in the grid
+ * @param {Object} object2 Another element in the grid
  */

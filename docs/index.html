@@ -34,7 +34,10 @@
                                         128, 8, 6,
                                         (s, p) => { const b = s.getBoundingBox();
                                                 return b.x1 <= p.x && b.y1 <= p.y &&
-                                                b.x2 >= p.x && b.y2 >= p.y;}
+                                                b.x2 >= p.x && b.y2 >= p.y;},
+                                        (s1, s2) => { const b1 = s1.getBoundingBox(); const b2 = s2.getBoundingBox();
+                                                return b1.x1 < b2.x2 && b2.x1 < b1.x2 && b1.y1 < b2.y2 && b2.y1 < b1.y2;
+                                        }
                                         );
                                 createSprite();
                                 
@@ -101,6 +104,17 @@
                                         movement.x -= newX;
                                         movement.y -= newY;
                                         demoData.collisionGrid.update(sprite, sprite.getBoundingBox(), movement);
+                                        
+                                        const collisions = demoData.collisionGrid.getCollisions(
+                                                sprite, sprite.getBoundingBox());
+                                        if (collisions.length > 0) {
+                                                if (collisions[0].transform.position.x > sprite.transform.position.x) {
+                                                        data.directionX = -1
+                                                } else {
+                                                        data.directionX = 1;
+                                                }
+                                        }
+                                                
                                         sprite.transform.position.x = newX;
                                         sprite.transform.position.y = newY;
                                         sprite.update();
