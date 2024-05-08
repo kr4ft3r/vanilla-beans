@@ -49,7 +49,6 @@ class Sprite {
                 elem.style.height = Math.round(this.definition.height*this.transform.scale.y) + 'px';
                 elem.style.backgroundSize = `${Math.round(this.definition.width*this.transform.scale.x)}px ${Math.round(this.definition.height*this.transform.scale.y)}px`;
                 elem.style.transform = 'translate('+this.transform.position.x + 'px, '+this.transform.position.y + 'px)';
-                //console.log(elem.style.transform);
         }
         /**
          * @returns {number} Calculated non-rounded width

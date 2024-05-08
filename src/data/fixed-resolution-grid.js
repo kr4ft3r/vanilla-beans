@@ -32,10 +32,13 @@ class FixedResolutionGrid {
                 return this.cells[y][x];
         }
         insert(value, boundingBox) {
-                this._getCell(boundingBox).push(value);
+                let cell = this._getCell(boundingBox);
+                if (cell === undefined) return;
+                cell.push(value);
         }
         remove(value, boundingBox) {
                 let cell = this._getCell(boundingBox);
+                if (cell === undefined) return;
                 for (let i = 0; i < cell.length; i++) {
                         if (value === cell[i]) {
                                 cell.splice(i, 1);

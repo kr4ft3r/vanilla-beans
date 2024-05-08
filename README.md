@@ -16,3 +16,7 @@ Features optional libraries that utilize DOM as graphics engine, for those who f
 ## Demos
 
 - [docs root](https://kr4ft3r.github.io/vanilla-beans/) meant to show all the features crammed into one demo
+
+## Credits
+
+- Perlin noise by [josephg](https://github.com/josephg/)
