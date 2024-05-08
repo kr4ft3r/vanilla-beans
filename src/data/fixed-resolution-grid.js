@@ -1,6 +1,5 @@
 /**
  * Simple collision-checking grid with evenly distributed number of equal cells.
- * TODO collision between elements
  */
 class FixedResolutionGrid {
         /**
@@ -65,10 +64,13 @@ class FixedResolutionGrid {
                 );
                 if (prevX === x && prevY === y) return; // No change
                 // Remove from previous cell
-                let prevCell = this.cells[prevY][prevX];
-                for (let i = 0; i < prevCell.length; i++) {
-                        if (value === prevCell[i]) prevCell.splice(i, 1);
+                if (prevY >= 0 && prevY < this.height && prevX >= 0 && prevX < this.width) {
+                        let prevCell = this.cells[prevY][prevX];
+                        for (let i = 0; i < prevCell.length; i++) {
+                                if (value === prevCell[i]) prevCell.splice(i, 1);
+                        }
                 }
+                
                 // Insert to new cell
                 if (y >= 0 && y < this.height && x >= 0 && x < this.width)
                         this.cells[y][x].push(value);
@@ -106,8 +108,10 @@ class FixedResolutionGrid {
                 let hits = [];
                 for (let yi = 0; yi < cellsY.length; yi++) {
                         const y = cellsY[yi];
+                        if (y >= this.height) continue;
                         for (let xi = 0; xi < cellsX.length; xi++) {
                                 const x = cellsX[xi];
+                                if (x >= this.width) continue;
                                 const cell = this.cells[y][x];
                                 for (let i = 0; i < cell.length; i++) {
                                         if (cell[i] === value) continue;

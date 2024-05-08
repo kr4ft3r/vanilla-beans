@@ -36,6 +36,7 @@ class Sprite {
                 return `
                 <div id="sprite_${this.definition.id}_${this.id}" class="vb__sprite"
                 style="background-image:url(${this.definition.imagePath});width:${Math.round(this.definition.width*this.transform.scale.x)}px;height:${Math.round(this.definition.height*this.transform.scale.y)}px;
+                background-size: ${Math.round(this.definition.width*this.transform.scale.x)}px ${Math.round(this.definition.height*this.transform.scale.y)}px;
                 transform: translate(${this.transform.position.x}px, ${this.transform.position.y}px)"
                 ></div>
                 `;
@@ -46,9 +47,18 @@ class Sprite {
                 let elem = this.domElement;
                 elem.style.width = Math.round(this.definition.width*this.transform.scale.x) + 'px';
                 elem.style.height = Math.round(this.definition.height*this.transform.scale.y) + 'px';
+                elem.style.backgroundSize = `${Math.round(this.definition.width*this.transform.scale.x)}px ${Math.round(this.definition.height*this.transform.scale.y)}px`;
                 elem.style.transform = 'translate('+this.transform.position.x + 'px, '+this.transform.position.y + 'px)';
                 //console.log(elem.style.transform);
         }
+        /**
+         * @returns {number} Calculated non-rounded width
+         */
+        getWidth() { return this.definition.width*this.transform.scale.x; }
+        /**
+         * @returns {number} Calculated non-rounded height
+         */
+        getHeight() { return this.definition.height*this.transform.scale.y; }
 }
 Sprite.addToContainer = function (containerElem, sprite) {
         if (sprite.container !== null) Sprite.removeFromContainer(sprite);

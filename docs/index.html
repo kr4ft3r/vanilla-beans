@@ -39,7 +39,7 @@
                                                 return Collision.simpleBoxesOverlap(b1, b2);
                                         }
                                         );
-                                createSprite();
+                                createSprite('heart');
                                 
                                 containerElem.addEventListener("click", spriteContainerClicked);
                                 
@@ -47,17 +47,17 @@
                                 
                         }
                         
-                        function createSprite() {
-                                const spriteDef = demoData.spriteDefinitions['heart'];
+                        function createSprite(name) {
+                                const spriteDef = demoData.spriteDefinitions[name];
                                 let sprite = new Sprite(
-                                        'heart'+demoData.sprites.length, 
+                                        name+demoData.sprites.length, 
                                         spriteDef, 
-                                        {position: {x:100, y:100}, scale: {x:1.0,y:1.0}}
+                                        {position: {x:0, y:100}, scale: {x:1.0,y:1.0}}
                                 );
                                 Sprite.addToContainer(demoData.containerElem, sprite);
                                 
                                 demoData.sprites.push(sprite);
-                                demoData.spritesData.push({directionX:1, timeAlive:0.0});
+                                demoData.spritesData.push({directionX:1, timeAlive:0.0, tag: name});
                                 demoData.collisionGrid.insert(sprite, sprite.getBoundingBox());
                         }
                         
@@ -76,7 +76,7 @@
                                                 Sprite.removeFromContainer(sprite);
                                                 demoData.collisionGrid.remove(sprite, sprite.getBoundingBox());
                                         } else {
-                                                createSprite();
+                                                createSprite('heart');
                                         }
                                 }
                         }
@@ -87,13 +87,24 @@
                                 const deltaTime = (timestamp - previousFrameTimestamp) * 0.001;
 
                                 for (let i = 0; i < demoData.sprites.length; i++) {
-                                        let sprite = demoData.sprites[i];
-                                        let data = demoData.spritesData[i];
+                                        behaviors[demoData.spritesData[i].tag](
+                                                demoData.sprites[i], demoData.spritesData[i], deltaTime
+                                        );
+                                }
+                                
+                                previousFrameTimestamp = timestamp;
+                                window.requestAnimationFrame(frame);
+                        }
+                        
+                        var behaviors = {
+                                'heart': (sprite, data, deltaTime) => {
                                         data.timeAlive += deltaTime;
-                                        if (sprite.domElement === null) continue;
+                                        if (sprite.domElement === null) return;
                                         let xMod = 300;
-                                        if (sprite.transform.position.x >= 924) data.directionX = -1;
-                                        else if (sprite.transform.position.x <= 100) data.directionX = 1;
+                                        if (sprite.transform.position.x >= 1024 - sprite.getWidth()) 
+                                                data.directionX = -1;
+                                        else if (sprite.transform.position.x <= 0) 
+                                                data.directionX = 1;
                                         xMod *= data.directionX;
                                         let movement = {
                                                 x: sprite.transform.position.x,
@@ -117,16 +128,16 @@
                                                 
                                         sprite.transform.position.x = newX;
                                         sprite.transform.position.y = newY;
+                                        sprite.transform.scale.x = 1.0 + Math.cos(data.timeAlive)*0.5;
+                                        sprite.transform.scale.y = 1.0 + Math.cos(data.timeAlive)*0.5;
                                         sprite.update();
+                                        
                                 }
-                                
-                                previousFrameTimestamp = timestamp;
-                                window.requestAnimationFrame(frame);
-                        }
+                        };
                         
                 </script>
         </head>
-        <body style="margin:0;padding:0;background-color:#000000;color:#F3E5AB;">
+        <body style="margin:0;padding:0;background-color:#000000;color:#F3E5AB;font-family:monospace;">
                 <div id="test-container" style="width:1024px; height:768px; margin: 0 auto; position: relative; background-color:darkslateblue">
                         <h1 style="display:block;position:absolute">Vanilla Beans</h1>
                 </div>
