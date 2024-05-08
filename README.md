@@ -15,4 +15,4 @@ Features optional libraries that utilize DOM as graphics engine, for those who f
 
 ## Demos
 
-- `demo/index.html` meant to show all the features crammed into one demo
+- [docs root](https://kr4ft3r.github.io/vanilla-beans/) meant to show all the features crammed into one demo
