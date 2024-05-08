@@ -7,9 +7,12 @@
                         const demoData = {
                                 spriteDefinitions: {},
                                 sprites: [],
-                                spritesData: [], // Stuff otherwise encapsulated by game object
+                                spritesData: new HashTable(), // Stuff otherwise encapsulated by game object
                                 containerElem: null,
-                                collisionGrid: null
+                                collisionGrid: null,
+                                sequence: null,
+                                currentSequenceMemberStart: 0.0,
+                                nextSequenceMemberDelay: 0.0,
                         };
                         
                         function domReady(fn) {
@@ -28,8 +31,6 @@
                                 demoData.spriteDefinitions['heart'] = new SpriteDefinition('test', './heart.png', 64, 64);
                                 const containerElem = document.getElementById('test-container');
                                 demoData.containerElem = containerElem;
-                                
-                                //demoData.spriteElem = spriteElem;
                                 demoData.collisionGrid = new FixedResolutionGrid(
                                         128, 8, 6,
                                         (s, p) => { const b = s.getBoundingBox();
@@ -38,8 +39,16 @@
                                         (s1, s2) => { const b1 = s1.getBoundingBox(); const b2 = s2.getBoundingBox();
                                                 return Collision.simpleBoxesOverlap(b1, b2);
                                         }
-                                        );
-                                createSprite('heart');
+                                );
+
+                                demoData.sequence = new Queue();
+                                const spawnHeartAction = () => {
+                                        createSprite('heart');
+                                        demoData.nextSequenceMemberDelay = 0.5;
+                                }
+                                demoData.sequence.enqueue(spawnHeartAction);
+                                demoData.sequence.enqueue(spawnHeartAction);
+                                demoData.sequence.enqueue(spawnHeartAction);
                                 
                                 containerElem.addEventListener("click", spriteContainerClicked);
                                 
@@ -57,7 +66,7 @@
                                 Sprite.addToContainer(demoData.containerElem, sprite);
                                 
                                 demoData.sprites.push(sprite);
-                                demoData.spritesData.push({directionX:1, timeAlive:0.0, tag: name});
+                                demoData.spritesData.set(sprite.id, {directionX:1, timeAlive:0.0, tag: name});
                                 demoData.collisionGrid.insert(sprite, sprite.getBoundingBox());
                         }
                         
@@ -71,25 +80,33 @@
                                 const hits = demoData.collisionGrid.getAtPoint(point);
                                 console.log(hits);
                                 if (hits.length > 0) {
-                                        if (demoData.sprites.length == 3) {
-                                                const sprite = hits[0];
-                                                Sprite.removeFromContainer(sprite);
-                                                demoData.collisionGrid.remove(sprite, sprite.getBoundingBox());
-                                        } else {
-                                                createSprite('heart');
-                                        }
+                                        const sprite = hits[0];
+                                        Sprite.removeFromContainer(sprite);
+                                        demoData.collisionGrid.remove(sprite, sprite.getBoundingBox());
                                 }
                         }
                         
                         var previousFrameTimestamp = null;
+                        var secondsElapsed = 0.0;
                         function frame(timestamp) {
                                 if (previousFrameTimestamp === null) previousFrameTimestamp = timestamp;
                                 const deltaTime = (timestamp - previousFrameTimestamp) * 0.001;
+                                secondsElapsed += deltaTime;
 
+                                // Run behaviors
                                 for (let i = 0; i < demoData.sprites.length; i++) {
-                                        behaviors[demoData.spritesData[i].tag](
-                                                demoData.sprites[i], demoData.spritesData[i], deltaTime
+                                        const data = demoData.spritesData.get(demoData.sprites[i].id);
+                                        behaviors[data.tag](
+                                                demoData.sprites[i], data, deltaTime
                                         );
+                                }
+                                
+                                // Run next action in the sequence
+                                if (!demoData.sequence.isEmpty() && 
+                                secondsElapsed - demoData.currentSequenceMemberStart >= demoData.nextSequenceMemberDelay) 
+                                {
+                                        demoData.sequence.dequeue()();
+                                        demoData.currentSequenceMemberStart = secondsElapsed;
                                 }
                                 
                                 previousFrameTimestamp = timestamp;
@@ -128,8 +145,8 @@
                                                 
                                         sprite.transform.position.x = newX;
                                         sprite.transform.position.y = newY;
-                                        sprite.transform.scale.x = 1.0 + Math.cos(data.timeAlive)*0.5;
-                                        sprite.transform.scale.y = 1.0 + Math.cos(data.timeAlive)*0.5;
+                                        sprite.transform.scale.x = 1.0 + Math.sin(data.timeAlive)*0.5;
+                                        sprite.transform.scale.y = 1.0 + Math.sin(data.timeAlive)*0.5;
                                         sprite.update();
                                         
                                 }
