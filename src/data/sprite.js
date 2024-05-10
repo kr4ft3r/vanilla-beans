@@ -18,6 +18,7 @@ class Sprite {
                 this.transform = transform;
                 this.container = null;
                 this.domElement = null;
+                this.sheetPosition = {x: 0, y: 0};
                 if (Sprite.idMap === null) Sprite.idMap = new HashTable();
                 Sprite.idMap.set(id, this);
         }
@@ -45,9 +46,13 @@ class Sprite {
                 if (this.domElement === null) return;
                 this.domElement = document.getElementById('sprite_'+this.definition.id+"_"+this.id);
                 let elem = this.domElement;
-                elem.style.width = Math.round(this.definition.width*this.transform.scale.x) + 'px';
-                elem.style.height = Math.round(this.definition.height*this.transform.scale.y) + 'px';
-                elem.style.backgroundSize = `${Math.round(this.definition.width*this.transform.scale.x)}px ${Math.round(this.definition.height*this.transform.scale.y)}px`;
+                elem.style.width = this.getWidth() + 'px';
+                elem.style.height = this.getHeight() + 'px';
+                elem.style.backgroundSize = `${this.getWidth()}px ${this.getHeight()}px`;
+                if (this.definition.sheet.width > 1 && this.definition.sheet.height > 1) {
+                        const sheetPos = this.getSheetPosition();
+                        elem.style.backgroundPosition = `${sheetPos.x*-1}px ${sheetPos.y*-1}px`;
+                }
                 elem.style.transform = 'translate('+this.transform.position.x + 'px, '+this.transform.position.y + 'px)';
         }
         /**
@@ -58,6 +63,15 @@ class Sprite {
          * @returns {number} Calculated non-rounded height
          */
         getHeight() { return this.definition.height*this.transform.scale.y; }
+        /**
+         * @returns {Object} Calculated x and y in pixels on sprite sheet image, not inversed
+         */
+        getSheetPosition() { 
+                return {
+                        x: this.getWidth*this.sheetPosition.x, 
+                        y: this.getHeight*this.sheetPosition.y
+                }; 
+        }
 }
 Sprite.addToContainer = function (containerElem, sprite) {
         if (sprite.container !== null) Sprite.removeFromContainer(sprite);
@@ -83,11 +97,13 @@ Sprite.idMap = null;//new HashTable();
  * Basic sprite data used for creating sprites. Instances are meant to be cached.
  */
 class SpriteDefinition {
-        constructor(id, imagePath, widthPx, heightPx) {
+        constructor(id, imagePath, widthPx, heightPx, sheet = null) {
                 this.id = id;
                 this.imagePath = imagePath;
                 this.width = widthPx;
                 this.height = heightPx;
+                if (sheet === null) sheet = {width: 1, height: 1}
+                this.sheet = sheet;
                 
                 SpriteDefinition.table.set(id, this);
         }
