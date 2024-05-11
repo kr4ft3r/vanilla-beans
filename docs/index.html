@@ -30,7 +30,8 @@
                         function domLoaded() {
                                 console.log("hello");
                                 demoData.spriteDefinitions['heart'] = new SpriteDefinition('test', './heart.png', 64, 64);
-                                demoData.spriteDefinitions['cloudpuff'] = new SpriteDefinition('test2', './cloudpuff.png', 64, 64);
+                                demoData.spriteDefinitions['cloudpuff'] = new SpriteDefinition(
+                                        'test2', './cloudpuff.png', 64, 64, {width: 4, height: 1});
                                 const containerElem = document.getElementById('test-container');
                                 demoData.containerElem = containerElem;
                                 demoData.collisionGrid = new FixedResolutionGrid(
@@ -61,16 +62,44 @@
                                                 if (value > 0.7) demoData.cloudMatrix.push({x:x*10, y:y*10}); //createSprite("cloudpuff", {x:x*10, y:y*10+100});
                                         }
                                 }
+                                const puffAnimLength = 0.1;
                                 for (let i = 0; i < demoData.cloudMatrix.length; i++)
                                                 createSprite("cloudpuff", {
                                                 x:demoData.cloudMatrix[i].x+1024, 
-                                                y:demoData.cloudMatrix[i].y+50});
+                                                y:demoData.cloudMatrix[i].y+50},
+                                                new TimedSequence(
+                                                        [
+                                                                {
+                                                                        duration: puffAnimLength,
+                                                                        action: (sprite) => {
+                                                                                sprite.sheetPosition.x = 1;
+                                                                        }
+                                                                },
+                                                                {
+                                                                        duration: puffAnimLength,
+                                                                        action: (sprite) => {
+                                                                                sprite.sheetPosition.x = 2;
+                                                                        }
+                                                                },
+                                                                {
+                                                                        duration: puffAnimLength,
+                                                                        action: (sprite) => {
+                                                                                sprite.sheetPosition.x = 3;
+                                                                        }
+                                                                },
+                                                                {
+                                                                        duration: puffAnimLength,
+                                                                        action: (sprite) => {
+                                                                                sprite.domElement.style.display = "none";
+                                                                        }
+                                                                },
+                                                        ]));
                                 
                                 window.requestAnimationFrame(frame);
                                 
                         }
                         
-                        function createSprite(name, position = null) {
+                        function createSprite(name, position = null, animation = null) {
                                 if (position === null) position = {x:0, y:100}
                                 const spriteDef = demoData.spriteDefinitions[name];
                                 let sprite = new Sprite(
@@ -80,8 +109,11 @@
                                 );
                                 Sprite.addToContainer(demoData.containerElem, sprite);
                                 
+                                if (animation !== null && animation.target === null)
+                                        animation.target = sprite;
                                 demoData.sprites.push(sprite);
-                                demoData.spritesData.set(sprite.id, {directionX:1, timeAlive:0.0, tag: name});
+                                demoData.spritesData.set(sprite.id, 
+                                        {directionX:1, timeAlive:0.0, animation: animation, tag: name});
                                 demoData.collisionGrid.insert(sprite, sprite.getBoundingBox());
                         }
                         
@@ -166,8 +198,11 @@
                                                 } else if (tag === "heart") {
                                                         data.directionX = 1;
                                                 } else if (tag === "cloudpuff") {
-                                                        collisions[i].domElement.style.display = "none";
-                                                        demoData.collisionGrid.remove(collisions[i], collisions[i].getBoundingBox());
+                                                        //collisions[i].domElement.style.display = "none";
+                                                        demoData.spritesData.get(collisions[i].id).
+                                                                animation.start();
+                                                        demoData.collisionGrid.remove(
+                                                                collisions[i], collisions[i].getBoundingBox());
                                                 }
                                         }
                                                 
@@ -181,14 +216,19 @@
                                         data.timeAlive += deltaTime;
                                         
                                         const moveX = -120 * deltaTime;
-                                        if (sprite.domElement.style.display !== "none")
-                                                demoData.collisionGrid.update(
-                                                        sprite, sprite.getBoundingBox(), {x:moveX, y:0}
-                                                        );
+                                        if (!data.animation.running) {
+                                                if (sprite.domElement.style.display !== "none")
+                                                        demoData.collisionGrid.update(
+                                                                sprite, sprite.getBoundingBox(), {x:moveX, y:0}
+                                                                );
+                                        } else { data.animation.update(deltaTime) };
                                         sprite.transform.position.x += moveX;
                                         sprite.update();
                                         if (sprite.transform.position.x < sprite.getWidth() * -1) {
                                                 sprite.transform.position.x += 1024 + sprite.getWidth();
+                                                data.animation.currentIndex = 0;
+                                                data.animation.running = false;
+                                                sprite.sheetPosition.x = 0;
                                                 sprite.domElement.style.display = "block";
                                         }
                                 }
