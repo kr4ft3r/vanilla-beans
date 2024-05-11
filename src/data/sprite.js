@@ -48,8 +48,8 @@ class Sprite {
                 let elem = this.domElement;
                 elem.style.width = this.getWidth() + 'px';
                 elem.style.height = this.getHeight() + 'px';
-                elem.style.backgroundSize = `${this.getWidth()}px ${this.getHeight()}px`;
-                if (this.definition.sheet.width > 1 && this.definition.sheet.height > 1) {
+                elem.style.backgroundSize = `${this.getWidth()*this.definition.sheet.width}px ${this.getHeight()*this.definition.sheet.height}px`;
+                if (this.definition.sheet.width > 1 || this.definition.sheet.height > 1) {
                         const sheetPos = this.getSheetPosition();
                         elem.style.backgroundPosition = `${sheetPos.x*-1}px ${sheetPos.y*-1}px`;
                 }
@@ -68,8 +68,8 @@ class Sprite {
          */
         getSheetPosition() { 
                 return {
-                        x: this.getWidth*this.sheetPosition.x, 
-                        y: this.getHeight*this.sheetPosition.y
+                        x: this.getWidth()*this.sheetPosition.x, 
+                        y: this.getHeight()*this.sheetPosition.y
                 }; 
         }
 }
