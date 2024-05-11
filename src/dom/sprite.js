@@ -1,6 +1,6 @@
 /**
  * DOM-based sprite implementation. See demo for usage.
- * TODO rotation, proper transform object, sprite sheet animation... Many features missing.
+ * TODO rotation, proper transform object... Many features missing.
  * 
  * Usage (single sprite):
  * - Create new Sprite object, providing unique ID string, SpriteDefinition instance,
