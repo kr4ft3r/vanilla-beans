@@ -1,10 +1,12 @@
 /**
  * DOM-based sprite implementation. See demo for usage.
- * TODO rotation, proper transform object... Many features missing.
+ * TODO proper transform object?
  * 
  * Usage (single sprite):
  * - Create new Sprite object, providing unique ID string, SpriteDefinition instance,
- * and transform object with properties position{x,y} and scale{width,height}.
+ * and transform object with properties position{x,y}, and optional properties: 
+ * scale{width,height}, rotation, positionUnit, rotationUnit (units are CSS units of position/roation).
+ * Defaults are `px` and `rad`.
  * - Add to container: Sprite.addToContainer(container, sprite) where container is a
  * DOM object with relative position. This will draw the sprite on the screen.
  * - When sprite's transform is updated: sprite.update() to redraw
@@ -16,10 +18,12 @@ class Sprite {
                 this.id = id;
                 this.definition = spriteDefinition;
                 this.transform = transform;
+                if (!('rotation' in transform)) this.transform.rotation = 0;
+                if (!('positionUnit' in transform)) this.transform.positionUnit = 'px';
+                if (!('rotationUnit' in transform)) this.transform.rotationUnit = 'rad';
                 this.container = null;
                 this.domElement = null;
                 this.sheetPosition = {x: 0, y: 0};
-                if (Sprite.idMap === null) Sprite.idMap = new HashTable();
                 Sprite.idMap.set(id, this);
         }
         /**
@@ -36,9 +40,9 @@ class Sprite {
         toHtml() {
                 return `
                 <div id="sprite_${this.definition.id}_${this.id}" class="vb__sprite"
-                style="background-image:url(${this.definition.imagePath});width:${Math.round(this.definition.width*this.transform.scale.x)}px;height:${Math.round(this.definition.height*this.transform.scale.y)}px;
-                background-size: ${Math.round(this.definition.width*this.transform.scale.x)}px ${Math.round(this.definition.height*this.transform.scale.y)}px;
-                transform: translate(${this.transform.position.x}px, ${this.transform.position.y}px)"
+                style="background-image:url(${this.definition.imagePath});width:${Math.round(this.getWidth())}px;height:${Math.round(this.getHeight())}px;
+                background-size: ${Math.round(this.getWidth())}px ${Math.round(this.getHeight())}px;
+                transform: translate(${this.transform.position.x}${this.transform.positionUnit}, ${this.transform.position.y}${this.transform.positionUnit}) rotate(${this.transform.rotation}${this.transform.rotationUnit})"
                 ></div>
                 `;
         }
@@ -53,7 +57,7 @@ class Sprite {
                         const sheetPos = this.getSheetPosition();
                         elem.style.backgroundPosition = `${sheetPos.x*-1}px ${sheetPos.y*-1}px`;
                 }
-                elem.style.transform = 'translate('+this.transform.position.x + 'px, '+this.transform.position.y + 'px)';
+                elem.style.transform = 'translate('+this.transform.position.x + this.transform.positionUnit + ', '+this.transform.position.y + this.transform.positionUnit + ') rotate('+(this.transform.rotation)+this.transform.rotationUnit+')';
         }
         /**
          * @returns {number} Calculated non-rounded width
@@ -91,12 +95,20 @@ Sprite.removeFromContainer = function (sprite) {
         spriteElem.remove();
         sprite.domElement = null;
 }
-Sprite.idMap = null;//new HashTable();
+Sprite.idMap = new HashTable();
 
 /**
  * Basic sprite data used for creating sprites. Instances are meant to be cached.
  */
 class SpriteDefinition {
+        /**
+         * 
+         * @param {string} id Unique ID, cannot start with number
+         * @param {string} imagePath Sprite or spritesheet file path
+         * @param {number} widthPx Default width
+         * @param {number} heightPx Default height
+         * @param {Object} sheet {width,height} If image is spritesheet, width is columns, height is rows
+         */
         constructor(id, imagePath, widthPx, heightPx, sheet = null) {
                 this.id = id;
                 this.imagePath = imagePath;
