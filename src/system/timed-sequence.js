@@ -1,10 +1,15 @@
 class TimedSequence {
         /**
-         * @param {Object[]} sequence Array of objects with properties {duration:length in seconds, action:callback} 
+         * @param {Object[]} sequence Array of objects with properties {duration:length in seconds, action:callback, label, goto:will move to label} 
          * @param {*} target Optional target parameter passed to callbacks
          */
         constructor(sequence, loop = false, target = null) {
                 this.sequence = sequence;
+                this.labels = sequence.reduce(
+                        (acc, obj, i) => { if('label' in obj) return acc[obj.label] = i; else return acc; },
+                        {}
+                );
+                this.loop = loop;
                 this.target = target;
                 this.time = 0.0;
                 this.currentIndex = 0;
@@ -30,6 +35,10 @@ class TimedSequence {
                         else { this.running = false; return false; }
                 }
                 this.time = 0.0;
+                if ('goto' in this.sequence[this.currentIndex]) {
+                        this.start(this.labels[this.sequence[this.currentIndex].goto]);
+                        return this.currentIndex;
+                }
                 this.sequence[this.currentIndex].action(this.target);
                 
                 return this.currentIndex;
