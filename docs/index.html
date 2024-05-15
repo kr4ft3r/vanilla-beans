@@ -14,6 +14,48 @@
                                 currentSequenceMemberStart: 0.0,
                                 nextSequenceMemberDelay: 0.0,
                                 cloudMatrix: [],
+                                rainSpritePool: null,
+                                dropDroppingSequence: [
+                                        {
+                                                duration: 0.1,
+                                                action: (sprite) => {sprite.sheetPosition = {x:0, y:0}}
+                                        },
+                                        {
+                                                duration: 0.1,
+                                                action: (sprite) => {sprite.sheetPosition = {x:1, y:0}}
+                                        },
+                                        {
+                                                duration: 0.1,
+                                                action: (sprite) => {sprite.sheetPosition = {x:2, y:0}}
+                                        },
+                                        {
+                                                duration: 0.1,
+                                                action: (sprite) => {sprite.sheetPosition = {x:1, y:0}}
+                                        },
+                                ],
+                                dropHitSequence: [
+                                        {
+                                                duration: 0.045,
+                                                action: (sprite) => sprite.sheetPosition = {x: 0, y: 1},
+                                                label: 'test'
+                                        },
+                                        {
+                                                duration: 0.045,
+                                                action: (sprite) => sprite.sheetPosition = {x: 1, y: 1}
+                                        },
+                                        {
+                                                duration: 0.045,
+                                                action: (sprite) => sprite.sheetPosition = {x: 2, y: 1}
+                                        },
+                                        {
+                                                duration: 0.045,
+                                                action: (sprite) => sprite.sheetPosition = {x: 0, y: 2}
+                                        },
+                                        {
+                                                duration: 0.045,
+                                                action: (sprite) => null
+                                        },
+                                ],
                         };
                         
                         function domReady(fn) {
@@ -32,8 +74,12 @@
                                 demoData.spriteDefinitions['heart'] = new SpriteDefinition('test', './heart.png', 64, 64);
                                 demoData.spriteDefinitions['cloudpuff'] = new SpriteDefinition(
                                         'test2', './cloudpuff.png', 64, 64, {width: 4, height: 1});
+                                demoData.spriteDefinitions['drop'] = new SpriteDefinition(
+                                        'drop', './drop.png', 64, 64, {width: 3, height: 3});
                                 const containerElem = document.getElementById('test-container');
                                 demoData.containerElem = containerElem;
+                                const containerSub1Elem = document.getElementById('container-sub1');
+                                demoData.containerSub1Elem = containerSub1Elem;
                                 demoData.collisionGrid = new FixedResolutionGrid(
                                         128, 8, 6,
                                         (s, p) => { const b = s.getBoundingBox();
@@ -94,19 +140,34 @@
                                                                         }
                                                                 },
                                                         ]));
+                                // Fill rain pool
+                                let drop;
+                                let firstDrop;
+                                for (let i = 0; i < 500; i++) {
+                                        dropSprite = createSprite('drop', 
+                                                Vector2.Zero.clone(), null, demoData.containerSub1Elem);
+                                        demoData.collisionGrid.remove(dropSprite, dropSprite.getBoundingBox());
+                                        dropSprite.domElement.style.display = "none";
+
+                                        drop = { sprite: dropSprite, next: (i === 499 ? firstDrop : null) }
+                                        if (i === 0) firstDrop = drop;
+                                        if (demoData.rainSpritePool !== null) demoData.rainSpritePool.next = drop;
+                                        demoData.rainSpritePool = drop;
+                                }
                                 
                                 window.requestAnimationFrame(frame);
                                 
                         }
                         
-                        function createSprite(name, position, animation = null) {
+                        function createSprite(name, position, animation = null, containerElem = null) {
+                                if (containerElem === null) containerElem = demoData.containerElem;
                                 const spriteDef = demoData.spriteDefinitions[name];
                                 let sprite = new Sprite(
                                         name+demoData.sprites.length, 
                                         spriteDef, 
                                         {position: position, scale: {x:1.0,y:1.0}}
                                 );
-                                Sprite.addToContainer(demoData.containerElem, sprite);
+                                Sprite.addToContainer(containerElem, sprite);
                                 
                                 if (animation !== null && animation.target === null)
                                         animation.target = sprite;
@@ -114,12 +175,14 @@
                                 demoData.spritesData.set(sprite.id, 
                                         {directionX:1, timeAlive:0.0, animation: animation, tag: name});
                                 demoData.collisionGrid.insert(sprite, sprite.getBoundingBox());
+                                
+                                return sprite;
                         }
                         
                         function destroySprite(sprite) {
                                 Sprite.removeFromContainer(sprite);
                                 demoData.collisionGrid.remove(sprite, sprite.getBoundingBox());
-                                //demoData.spritesData.remove(sprite.id);
+                                demoData.spritesData.remove(sprite.id);
                         }
                         
                         function spriteContainerClicked(event) {
@@ -138,6 +201,16 @@
                                                         animation.start();
                                                 demoData.collisionGrid.remove(
                                                         sprite, sprite.getBoundingBox());
+                                                
+                                                let drop = demoData.rainSpritePool.next.sprite;
+                                                demoData.rainSpritePool = demoData.rainSpritePool.next;
+                                                drop.domElement.style.display = "block";
+                                                drop.transform.position = hits[0].transform.position.clone();
+                                                let dropData = demoData.spritesData.get(drop.id);
+                                                dropData.timeAlive = 0.0;
+                                                dropData.animation = new TimedSequence(demoData.dropDroppingSequence, true, drop);
+                                                dropData.animation.start();
+                                                demoData.collisionGrid.insert(drop, drop.getBoundingBox());
                                         }
                                         
                                 }
@@ -208,6 +281,19 @@
                                                                 animation.start();
                                                         demoData.collisionGrid.remove(
                                                                 collisions[i], collisions[i].getBoundingBox());
+                                                        // Spawn rain drop
+                                                        let spawnPos = collisions[i].transform.position.clone();
+                                                        spawnPos.addVector(Vector2.mul(Vector2.Up, 32));
+                                                        
+                                                        let drop = demoData.rainSpritePool.next.sprite;
+                                                        demoData.rainSpritePool = demoData.rainSpritePool.next;
+                                                        drop.transform.position = spawnPos;
+                                                        let dropData = demoData.spritesData.get(drop.id);
+                                                        dropData.timeAlive = 0.0;
+                                                        if (dropData.animation !== null) dropData.animation.running = false;
+                                                        dropData.animation = new TimedSequence(demoData.dropDroppingSequence, true, drop);
+                                                        dropData.animation.start();
+                                                        demoData.collisionGrid.insert(drop, drop.getBoundingBox());
                                                 }
                                         }
                                                 
@@ -235,14 +321,55 @@
                                                 sprite.sheetPosition.x = 0;
                                                 sprite.domElement.style.display = "block";
                                         }
-                                }
+                                },
+                                'drop': (sprite, data, deltaTime) => {
+                                        if (sprite.domElement.style.display !== "block") {
+                                               if (data.animation === null) return;
+                                               else sprite.domElement.style.display = "block";
+                                        } 
+                                        data.timeAlive += deltaTime;
+                                        if(sprite.domElement) sprite.domElement.style.opacity = data.timeAlive*0.25;
+                                        if (('state' in data)) {
+                                                if (!data.animation.running) {
+                                                        sprite.domElement.style.display = "none";
+                                                        data.animation.running = false;
+                                                        data.animation = null;
+                                                        demoData.collisionGrid.remove(
+                                                                sprite, sprite.getBoundingBox()
+                                                        );
+                                                        delete data['state'];
+                                                } else {
+                                                        sprite.update();
+                                                        data.animation.update(deltaTime);
+                                                }
+                                                return;
+                                        }
+                                        const move = Vector2.mul(Vector2.Up, 100 + data.timeAlive*600);//TODO inverse for dom up
+                                        move.x -= 120.0;
+                                        move.multiplyBy(deltaTime);
+                                        
+                                        sprite.transform.position.addVector(move);
+                                        sprite.update();
+                                        data.animation.update(deltaTime);
+                                        if (sprite.transform.position.y >= 768 - sprite.getHeight()) {
+                                                data.state = 'dropped';
+                                                data.animation = new TimedSequence(demoData.dropHitSequence, false, sprite);
+                                                data.animation.start();
+                                        }
+                                },
                         };
                         
                 </script>
         </head>
         <body style="margin:0;padding:0;background-color:#000000;color:#F3E5AB;font-family:monospace;">
-                <div id="test-container" class="vb__window" style="width:1024px; height:768px; margin: 0 auto; position: relative; overflow: hidden; background-color:darkslateblue;">
+                <div style="position:absolute; width: 100%; height: 100%; left: 0; top: 0; overflow:hidden;">
+                <div id="container-sub1" class="vb__window" style="width:1024px; height:768px; margin: 0 auto; position: relative; background-color:darkslateblue;">
+                </div>
+                </div>
+                <div style="position:absolute; width: 100%; height: 100%; left: 0; top: 0; overflow: hidden;">
+                <div id="test-container" class="vb__window" style="width:1024px; height:768px; margin: 0 auto; position: relative;">
                         <h1 style="display:block;position:absolute">Vanilla Beans</h1>
+                </div>
                 </div>
         </body>
 </html>

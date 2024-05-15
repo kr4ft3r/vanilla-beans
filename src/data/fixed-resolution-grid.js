@@ -29,6 +29,7 @@ class FixedResolutionGrid {
                         boundingBox.x1 + ((boundingBox.x2 - boundingBox.x1) * 0.5),
                         boundingBox.y1 + ((boundingBox.y2 - boundingBox.y1) * 0.5),
                 );
+                if (y >= this.height) return undefined;
                 return this.cells[y][x];
         }
         insert(value, boundingBox) {
