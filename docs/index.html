@@ -4,7 +4,10 @@
                 <link rel="stylesheet" type="text/css" href="vanilla-beans.css">
                 <script src="vanilla-beans.min.js"></script>
                 <script type="text/javascript">
+                        
                         const demoData = {
+                                paused: false,
+                                input: null,
                                 spriteDefinitions: {},
                                 sprites: [],
                                 spritesData: new HashTable(), // Stuff otherwise encapsulated by game object
@@ -15,6 +18,7 @@
                                 nextSequenceMemberDelay: 0.0,
                                 cloudMatrix: [],
                                 rainSpritePool: null,
+                                storyWindow: null,
                                 dropDroppingSequence: [
                                         {
                                                 duration: 0.1,
@@ -58,6 +62,34 @@
                                 ],
                         };
                         
+                        document.addEventListener('visibilitychange', () => {
+                                if (document.hidden) {
+                                        Events.instance.dispatch('pauseChanged', true);
+                                } else {
+                                        Events.instance.dispatch('pauseChanged', false);
+                                }
+                        });
+                        
+                        /*document.onkeydown = function(evt) {
+                                evt = evt || window.event;
+                                if (evt.keyCode == 80) {
+                                        demoData.paused = !demoData.paused;
+                                }
+                        };*/
+                        var testInputListener = {
+                                onGameKeyDown: (code) => {
+                                        console.log(code + " UP");
+                                        switch (code) {
+                                                case 80: // p
+                                                        Events.instance.dispatch('pauseChanged', !demoData.paused)
+                                                        break;
+                                                case 32: // space
+                                                        Events.instance.dispatch('skip');
+                                                        break;
+                                        }
+                                }
+                        }
+                        
                         function domReady(fn) {
                                 // If we're early to the party
                                 document.addEventListener("DOMContentLoaded", fn);
@@ -71,6 +103,15 @@
 
                         function domLoaded() {
                                 console.log("hello");
+                                new Events();
+                                demoData.input = new Input('game');
+                                Events.instance.registerEventListener(testInputListener, 'gameKeyDown');
+                                
+                                Events.instance.createEvent('pauseChanged');
+                                Events.instance.registerEventListener(behaviors, 'pauseChanged');
+                                
+                                Events.instance.createEvent('skip');
+                                
                                 demoData.spriteDefinitions['heart'] = new SpriteDefinition('test', './heart.png', 64, 64);
                                 demoData.spriteDefinitions['cloudpuff'] = new SpriteDefinition(
                                         'test2', './cloudpuff.png', 64, 64, {width: 4, height: 1});
@@ -98,6 +139,7 @@
                                 demoData.sequence.enqueue(spawnHeartAction);
                                 demoData.sequence.enqueue(spawnHeartAction);
                                 demoData.sequence.enqueue(spawnHeartAction);
+                                demoData.sequence.enqueue(()=>{demoData.storyWindow.popIn(null);demoData.nextSequenceMemberDelay = 1.0;})
                                 
                                 containerElem.addEventListener("click", spriteContainerClicked);
                                 
@@ -154,6 +196,35 @@
                                         if (demoData.rainSpritePool !== null) demoData.rainSpritePool.next = drop;
                                         demoData.rainSpritePool = drop;
                                 }
+                                
+                                // Story
+                                const storyWindowElem = document.getElementById('story-window');
+                                const storyTextElem = document.getElementById('story-window-text');
+                                demoData.storyWindow = new StoryWindow(
+                                        storyWindowElem,
+                                        storyTextElem,
+                                        (data, sw) => {
+                                                sw.windowElem.style.display = "block";
+                                                sw.windowElem.style.transform = "translate(0px, 600px)";
+                                                sw.windowElem.style.opacity = "0.9";
+                                                sw.write("Hello, hello, hello... Hello **again**?"+
+                                                "\nYou can press SPACE to skip all this typing.\nThis is a story window, btw.");
+                                        },
+                                        (data, sw) => {
+                                                sw.windowElem.style.transform = "translate(0px, 768px)";
+                                                sw.windowElem.style.opacity = "0";
+                                        },
+                                        (data) = {}
+                                );
+                                
+                                demoData.storyWindow.onSkip = () => {
+                                        console.log("skip");
+                                        if (demoData.storyWindow.typewriter.running)
+                                                demoData.storyWindow.skip();
+                                        else if (demoData.storyWindow.visible)
+                                                demoData.storyWindow.popOut();
+                                }
+                                Events.instance.registerEventListener(demoData.storyWindow, 'skip');
                                 
                                 window.requestAnimationFrame(frame);
                                 
@@ -219,6 +290,11 @@
                         var previousFrameTimestamp = null;
                         var secondsElapsed = 0.0;
                         function frame(timestamp) {
+                                if (demoData.paused) {
+                                        previousFrameTimestamp = timestamp;
+                                        window.requestAnimationFrame(frame);
+                                        return;
+                                }
                                 if (previousFrameTimestamp === null) previousFrameTimestamp = timestamp;
                                 const deltaTime = (timestamp - previousFrameTimestamp) * 0.001;
                                 secondsElapsed += deltaTime;
@@ -240,6 +316,9 @@
                                         demoData.currentSequenceMemberStart = secondsElapsed;
                                 }
                                 demoData.containerElem.style.backgroundPosition = Math.floor(secondsElapsed*40)+"px 100%";
+                                
+                                // Check story
+                                demoData.storyWindow.update(deltaTime);
                                 
                                 previousFrameTimestamp = timestamp;
                                 window.requestAnimationFrame(frame);
@@ -357,6 +436,10 @@
                                                 data.animation.start();
                                         }
                                 },
+                                // Event-driven behaviors
+                                onPauseChanged: (isPaused) => {
+                                        demoData.paused = isPaused;
+                                }
                         };
                         
                 </script>
@@ -366,9 +449,20 @@
                 <div id="container-sub1" class="vb__window" style="width:1024px; height:768px; margin: 0 auto; position: relative; background-color:darkslateblue;">
                 </div>
                 </div>
+                
                 <div style="position:absolute; width: 100%; height: 100%; left: 0; top: 0; overflow: hidden;">
                 <div id="test-container" class="vb__window" style="width:1024px; height:768px; margin: 0 auto; position: relative;">
                         <h1 style="display:block;position:absolute">Vanilla Beans</h1>
+                </div>
+                </div>
+                
+                <div style="position:absolute; width: 100%; height: 100%; left: 0; top: 0; overflow:hidden;">
+                <div id="story-overlay" class="vb__window" style="width:1024px; height:768px; margin: 0 auto; position: relative;">
+                        <div id="story-window" 
+                        style="display:block;position:absolute;width:100%;height:400px;background-color: midnightblue;color:antiquewhite;
+                        transform: translate(0px, 768px); transition: transform 1s, opacity 0.5s;">
+                                <div id="story-window-text" style="padding: 10px;"></div>
+                        </div>
                 </div>
                 </div>
         </body>
