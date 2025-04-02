@@ -51,16 +51,19 @@ class StoryWindow {
                         this.typewriter.head++;
                         if (this.typewriter.head >= this.typewriter.length) {
                                 this.typewriter.running = false;
+                                this.textElem.innerHTML = `${this.typewriter.visibleBuffer}<span style="visibility:hidden;">${this.typewriter.hiddenBuffer}</span>`;
                                 return;
                         }
                         char = this._headGetSpecialChar();
+                        let isSpecial = true;
                         if (char === '') {
+                                isSpecial = false;
                                 char = this.typewriter.text[this.typewriter.head];
                                 this.typewriter.hiddenBuffer = this.typewriter.hiddenBuffer.substring(1);
                         }
                         this.typewriter.visibleBuffer += char;
                         
-                        this.textElem.innerHTML = `${this.typewriter.visibleBuffer}<span style="visibility:hidden;">${this.typewriter.hiddenBuffer}</span>`;
+                        this.textElem.innerHTML = `${isSpecial ? this.typewriter.visibleBuffer : this._withLastCharSpan(this.typewriter.visibleBuffer)}<span style="visibility:hidden;">${this.typewriter.hiddenBuffer}</span>`;
                 }
         }
         
@@ -109,5 +112,13 @@ class StoryWindow {
                         this.typewriter.head--;
                 }
                 return char;
+        }
+        /**
+         * @param {string} text 
+         */
+        _withLastCharSpan(text) {
+                if (text.length == 1) return `<span class="tw__lastchar">${text}</span>`;
+
+                return `${text.substring(0, text.length - 1)}<span class="tw__lastchar">${text.substring(text.length - 1)}</span>`;
         }
 }
