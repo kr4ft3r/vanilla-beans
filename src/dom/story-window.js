@@ -31,6 +31,8 @@ class StoryWindow {
         write(text) {
                 this.typewriter.running = true;
                 this.typewriter.text = this._parse(text);
+                this.typewriter.visibleBuffer = '';
+                this.typewriter.hiddenBuffer = this.typewriter.text;
                 this.typewriter.length = this.typewriter.text.length;
                 this.typewriter.head = -1;
                 this.typewriter.headStyle = "normal";
@@ -52,9 +54,13 @@ class StoryWindow {
                                 return;
                         }
                         char = this._headGetSpecialChar();
-                        if (char === '')
+                        if (char === '') {
                                 char = this.typewriter.text[this.typewriter.head];
-                        this.textElem.innerHTML += char;
+                                this.typewriter.hiddenBuffer = this.typewriter.hiddenBuffer.substring(1);
+                        }
+                        this.typewriter.visibleBuffer += char;
+                        
+                        this.textElem.innerHTML = `${this.typewriter.visibleBuffer}<span style="visibility:hidden;">${this.typewriter.hiddenBuffer}</span>`;
                 }
         }
         
@@ -70,10 +76,13 @@ class StoryWindow {
                         this.typewriter.head++;
                         if (this.typewriter.head >= this.typewriter.length) break;
                         let char = this._headGetSpecialChar();
-                        if (char === '') char = this.typewriter.text[this.typewriter.head];
-                        this.textElem.innerHTML += char;
-                        //chars += this.typewriter.text[this.typewriter.head];
+                        if (char === '') {
+                                char = this.typewriter.text[this.typewriter.head];
+                                this.typewriter.hiddenBuffer = this.typewriter.hiddenBuffer.substring(1);
+                        }
+                        this.typewriter.visibleBuffer += char;
                 }
+                this.textElem.innerHTML = `${this.typewriter.visibleBuffer}<span style="visibility:hidden;">${this.typewriter.hiddenBuffer}</span>`;
                 
                 this.typewriter.running = false;
                 this.typewriter.time = 0.0;
