@@ -14,6 +14,7 @@ class StoryWindow {
                 this.popOutCallback = popOutCallback;
                 this.visible = false;
                 this.settings = {...StoryWindow.defaultSettings, ...settings}
+                this.sequence = [];
                 if (this.settings.handleSkipEvent && Events !== undefined && Events.instance !== undefined) {
                         Events.instance.createEventOnce('storyWindowSkipRequested');
                         Events.instance.registerEventListener(this, 'storyWindowSkipRequested');
@@ -38,6 +39,23 @@ class StoryWindow {
                 this.typewriter.write(text);
         }
         
+        /**
+         * 
+         * @param {Array} sequence Array of objects containing `text` (string) and optional `action` (callback) that will be called before requesting write
+         */
+        writeSequence(sequence) {
+                this.sequence = sequence;
+                this.writeNextSegment();
+        }
+        
+        writeNextSegment() {
+                if (this.sequence.length == 0) return;
+                let segment = this.sequence.shift();
+                if (segment.action) segment.action();
+                if (segment.text) this.write(segment.text)
+                else if (typeof(segment) === 'string') this.write(segment)
+        }
+        
         update(deltaTime) {
                 this.typewriter.update(deltaTime);
         }
@@ -50,6 +68,8 @@ class StoryWindow {
                 if (this.settings.handleSkipEventOnlyIfActive && StoryWindow.activeWindow != this) return;
                 if (this.typewriter.running)
                         this.skip();
+                else if (this.sequence.length > 0)
+                        this.writeNextSegment();
                 else if (this.settings.skipAlsoCloses && this.visible)
                         this.popOut();
         }
