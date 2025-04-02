@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html>
         <head>
+                <style>
+                        #story-window-text > .tw__lastchar {color:darkmagenta;}
+                </style>
                 <link rel="stylesheet" type="text/css" href="vanilla-beans.css">
                 <script src="vanilla-beans.min.js"></script>
                 <script type="text/javascript">
@@ -84,7 +87,7 @@
                                                         Events.instance.dispatch('pauseChanged', !demoData.paused)
                                                         break;
                                                 case 32: // space
-                                                        Events.instance.dispatch('skip');
+                                                        Events.instance.dispatch('storyWindowSkipRequested');
                                                         break;
                                         }
                                 }
@@ -109,8 +112,6 @@
                                 
                                 Events.instance.createEvent('pauseChanged');
                                 Events.instance.registerEventListener(behaviors, 'pauseChanged');
-                                
-                                Events.instance.createEvent('skip');
                                 
                                 demoData.spriteDefinitions['heart'] = new SpriteDefinition('test', './heart.png', 64, 64);
                                 demoData.spriteDefinitions['cloudpuff'] = new SpriteDefinition(
@@ -207,8 +208,12 @@
                                                 sw.windowElem.style.display = "block";
                                                 sw.windowElem.style.transform = "translate(0px, 600px)";
                                                 sw.windowElem.style.opacity = "0.9";
-                                                sw.write("Hello, hello, hello... Hello **again**?"+
-                                                "\nYou can press SPACE to skip all this typing.\nThis is a story window, btw. This time with proper pre-set breaking of text.");
+                                                sw.writeSequence([
+                                                        "Hello, hello, hello... Hello **again**?"+
+                                                        "\nYou can press SPACE to skip all this typing.\nThis is a story window, btw. This time with proper pre-set breaking of text.",
+                                                        
+                                                        "By the way, typewriter was separated from StoryWindow, and to make StoryWindow more useful you can now send it a sequence of texts with optional callbacks.\nHit SPACE to close"
+                                                ]);
                                         },
                                         (data, sw) => {
                                                 sw.windowElem.style.transform = "translate(0px, 768px)";
@@ -216,15 +221,6 @@
                                         },
                                         (data) = {}
                                 );
-                                
-                                demoData.storyWindow.onSkip = () => {
-                                        console.log("skip");
-                                        if (demoData.storyWindow.typewriter.running)
-                                                demoData.storyWindow.skip();
-                                        else if (demoData.storyWindow.visible)
-                                                demoData.storyWindow.popOut();
-                                }
-                                Events.instance.registerEventListener(demoData.storyWindow, 'skip');
                                 
                                 window.requestAnimationFrame(frame);
                                 
