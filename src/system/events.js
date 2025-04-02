@@ -20,6 +20,11 @@ class Events {
 		if (this.eventListenerMap[eventName] === undefined) {console.warn("EVENT NOT REGISTERED: "+eventName); return;}
 		this.eventListenerMap[eventName].push(object);
 	}
+	unregisterEventListener(object, eventName) {
+		let i = this.eventListenerMap[eventName].indexOf(object);
+		if (i === -1) {console.warn("Listener to unregister not found for event "+eventName); return;}
+		this.eventListenerMap[eventName].splice(i, 1);
+	}
 	dispatch(eventName, data) {
 		if (this.eventListenerMap[eventName] === undefined) {console.warn("EVENT NOT REGISTERED: "+eventName); return;}
 		const handlerName = this.getEventHandlerName(eventName);
