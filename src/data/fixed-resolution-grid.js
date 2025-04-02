@@ -87,7 +87,7 @@ class FixedResolutionGrid {
          */
         getAtPoint(point) {
                 const [x, y] = this._getCoordsAtPoint(point.x, point.y);
-                console.log(x+"|"+y+" CHECKING");
+                if(this.debug) console.log(x+"|"+y+" CHECKING");
                 const cell = this.cells[y][x];
                 let hits = [];
                 for(let i = 0; i < cell.length; i++) {
