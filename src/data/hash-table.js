@@ -5,7 +5,7 @@ class HashTable {
         }
         *[Symbol.iterator]() {
                 for(let i = 0; i < this.size; i++)
-                        if(this.table[i].length) continue;
+                        if(!this.table[i] || !this.table[i].length) continue;
                         else for(let y = 0; y < this.table[i].length; y++)
                                 yield this.table[i][y][1];
         }
