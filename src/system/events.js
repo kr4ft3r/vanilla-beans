@@ -2,7 +2,7 @@
  * Simple event system.
  * To use: 
  * - Initiate singleton: new Events()
- * - Register event type: Events.instance.createEvent('exampleEvent') 
+ * - Register event type: Events.instance.createEvent('exampleEvent') or createEventOnce to not overwrite existing one with same name
  * - Register event listener object: Events.instance.registerEventListener(exampleObject, 'exampleEvent')
  * - Make sure the listener object implements onExampleEvent(data) function
  * - Of course you can have as many listeners per event type as you want
@@ -15,6 +15,10 @@ class Events {
 	}
 	createEvent(eventName) {
 		this.eventListenerMap[eventName] = [];
+	}
+	createEventOnce(eventName) {
+		if (this.eventListenerMap[eventName] === undefined)
+			this.createEvent(eventName);
 	}
 	registerEventListener(object, eventName) {
 		if (this.eventListenerMap[eventName] === undefined) {console.warn("EVENT NOT REGISTERED: "+eventName); return;}
