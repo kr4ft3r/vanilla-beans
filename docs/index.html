@@ -9,7 +9,6 @@
                 <script type="text/javascript">
                         
                         const demoData = {
-                                paused: false,
                                 input: null,
                                 spriteDefinitions: {},
                                 sprites: [],
@@ -64,27 +63,13 @@
                                         },
                                 ],
                         };
-                        
-                        document.addEventListener('visibilitychange', () => {
-                                if (document.hidden) {
-                                        Events.instance.dispatch('pauseChanged', true);
-                                } else {
-                                        Events.instance.dispatch('pauseChanged', false);
-                                }
-                        });
-                        
-                        /*document.onkeydown = function(evt) {
-                                evt = evt || window.event;
-                                if (evt.keyCode == 80) {
-                                        demoData.paused = !demoData.paused;
-                                }
-                        };*/
+
                         var testInputListener = {
                                 onGameKeyDown: (code) => {
                                         console.log(code + " UP");
                                         switch (code) {
                                                 case 80: // p
-                                                        Events.instance.dispatch('pauseChanged', !demoData.paused)
+                                                        Events.instance.dispatch('pauseChangeRequested', !window.mainLoop.isPaused)
                                                         break;
                                                 case 32: // space
                                                         Events.instance.dispatch('storyWindowSkipRequested');
@@ -110,8 +95,6 @@
                                 demoData.input = new Input('game');
                                 Events.instance.registerEventListener(testInputListener, 'gameKeyDown');
                                 
-                                Events.instance.createEvent('pauseChanged');
-                                Events.instance.registerEventListener(behaviors, 'pauseChanged');
                                 
                                 demoData.spriteDefinitions['heart'] = new SpriteDefinition('test', './heart.png', 64, 64);
                                 demoData.spriteDefinitions['cloudpuff'] = new SpriteDefinition(
@@ -222,8 +205,37 @@
                                         (data) = {}
                                 );
                                 
-                                window.requestAnimationFrame(frame);
+                                // Loop
+                                window.mainLoop = new Loop((time, state) => {
+                                        const demoData = state.demoData;
+                                        const deltaTime = time.deltaTime;
+                                        const secondsElapsed = time.secondsElapsed;
+                                        // Run behaviors
+                                        for (let i = 0; i < demoData.sprites.length; i++) {
+                                                const data = demoData.spritesData.get(demoData.sprites[i].id);
+                                                if (data === undefined) continue;
+                                                behaviors[data.tag](
+                                                        demoData.sprites[i], data, deltaTime
+                                                );
+                                        }
+                                        
+                                        // Run next action in the sequence
+                                        if (!demoData.sequence.isEmpty() && 
+                                        secondsElapsed - demoData.currentSequenceMemberStart >= demoData.nextSequenceMemberDelay) 
+                                        {
+                                                demoData.sequence.dequeue()();
+                                                demoData.currentSequenceMemberStart = secondsElapsed;
+                                        }
+                                        demoData.containerElem.style.backgroundPosition = Math.floor(secondsElapsed*40)+"px 100%";
+                                        
+                                        // Check story
+                                        demoData.storyWindow.update(deltaTime);
+                                }, {
+                                        demoData: demoData,
+                                });
+                                Events.instance.registerEventListener(behaviors, 'pauseChangeRequested');
                                 
+                                window.mainLoop.start();
                         }
                         
                         function createSprite(name, position, animation = null, containerElem = null) {
@@ -281,43 +293,6 @@
                                         }
                                         
                                 }
-                        }
-                        
-                        var previousFrameTimestamp = null;
-                        var secondsElapsed = 0.0;
-                        function frame(timestamp) {
-                                if (demoData.paused) {
-                                        previousFrameTimestamp = timestamp;
-                                        window.requestAnimationFrame(frame);
-                                        return;
-                                }
-                                if (previousFrameTimestamp === null) previousFrameTimestamp = timestamp;
-                                const deltaTime = (timestamp - previousFrameTimestamp) * 0.001;
-                                secondsElapsed += deltaTime;
-
-                                // Run behaviors
-                                for (let i = 0; i < demoData.sprites.length; i++) {
-                                        const data = demoData.spritesData.get(demoData.sprites[i].id);
-                                        if (data === undefined) continue;
-                                        behaviors[data.tag](
-                                                demoData.sprites[i], data, deltaTime
-                                        );
-                                }
-                                
-                                // Run next action in the sequence
-                                if (!demoData.sequence.isEmpty() && 
-                                secondsElapsed - demoData.currentSequenceMemberStart >= demoData.nextSequenceMemberDelay) 
-                                {
-                                        demoData.sequence.dequeue()();
-                                        demoData.currentSequenceMemberStart = secondsElapsed;
-                                }
-                                demoData.containerElem.style.backgroundPosition = Math.floor(secondsElapsed*40)+"px 100%";
-                                
-                                // Check story
-                                demoData.storyWindow.update(deltaTime);
-                                
-                                previousFrameTimestamp = timestamp;
-                                window.requestAnimationFrame(frame);
                         }
                         
                         var behaviors = {
@@ -433,8 +408,8 @@
                                         }
                                 },
                                 // Event-driven behaviors
-                                onPauseChanged: (isPaused) => {
-                                        demoData.paused = isPaused;
+                                onPauseChangeRequested: (isPaused) => {
+                                        window.mainLoop.isPaused = isPaused;
                                 }
                         };
                         
