@@ -6,9 +6,9 @@
  * 
  * Only one Loop object can be active at any moment.
  * 
- * Pause management:
+ * ### Pause management
  * If Vanilla Beans Events system is loaded it will also create `pauseChangeRequested` and `loopPauseChanged` events, 
- * in which case you must create listener with `onPauseChangeRequested` handler that receives `isPaused` boolean 
+ * in which case you must register a listener with `onPauseChangeRequested` handler that receives `isPaused` boolean 
  * to pause or unpause the loop.
  * With default settings, Loop class triggers auto-pausing when user navigates away from the page in order to 
  * prevent bugs/discontinuities caused by browser-specific memory optimizations. If Events system is not in use this
@@ -18,7 +18,8 @@
  */
 class Loop {
         /**
-         * @callback frameAction
+         * A procedure that the Loop class can run each frame.
+         * @callback Loop~FrameAction
          * @param {Object} time
          * @param {Object} state
          * @param {Number} time.deltaTime Float, seconds since last frame
@@ -26,7 +27,7 @@ class Loop {
          */
         
         /**
-         * @param {frameAction|frameAction[]} defaultLoopCallback Callback or an array of callbacks that will run each frame
+         * @param {FrameAction|FrameAction[]} defaultLoopCallback Callback or an array of callbacks that will run each frame
          * @param {object} defaultState Arbitrary state object that will be passed to frameAction callbacks
          * @param {object} settings
          * @param {bool} settings.pauseOnHide Whether the time should stop when browser page loses focus, highly recommended for real-time games to avoid bugs caused by browser memory optimizations, default true
@@ -38,7 +39,10 @@ class Loop {
                 this.currentState = this.defaultState;
                 this.previousFrameTimestamp = null;
                 this.secondsElapsed = 0.0;
-                /** @type {bool} May manipulate directly to manage pause state */
+                /**
+                 * May manipulate directly to manage pause state 
+                 * @type {bool}
+                 */
                 this.isPaused = false;
                 this.settings = {...Loop.defaultSettings, ...settings};
                 this._prevPausedValue = this.isPaused;
@@ -71,7 +75,7 @@ class Loop {
          * Append one or more default actions that will run each frame.
          * Currently the only way to remove specific actions is to have them named and set them to falsey values, the system will remove them from the queue.
          * 
-         * @param {frameAction|frameAction[]} action Single frame action callback or an array
+         * @param {FrameAction|FrameAction[]} action Single frame action callback or an array
          */
         pushToActionQueue(action) {
                 if (Array.isArray(action))
@@ -129,7 +133,10 @@ class Loop {
         }
 }
 
-/** @type {Loop} Currently active Loop instance, set automatically when `start` method is called */
+/**
+ * Currently active Loop instance, set automatically when `start` method is called
+ * @type {Loop}
+ */
 Loop.active = null;
 
 Loop.defaultSettings = {

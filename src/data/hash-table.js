@@ -1,3 +1,6 @@
+/**
+ * Hash table implementation.
+ */
 class HashTable {
         constructor() {
                 this.table = new Array(127);
@@ -17,6 +20,10 @@ class HashTable {
                 
                 return hash % this.table.length;
         }
+        /**
+         * @param {string} key 
+         * @param {*} value 
+         */
         set(key, value) {
                 const index = this._hash(key);
                 if (this.table[index]) {
@@ -35,6 +42,7 @@ class HashTable {
                 }
                 this.size++;
         }
+        /** @param {string} key */
         get(key) {
                 const index = this._hash(key);
                 if (this.table[index]) {
@@ -46,6 +54,7 @@ class HashTable {
                 
                 return undefined;
         }
+        /** @param {string} key */
         remove(key) {
                 const index = this._hash(key);
                 
@@ -62,6 +71,7 @@ class HashTable {
                 
                 return false;
         }
+        /** String representation of the table. */
         toString() {
                 let table = '';
                 this.table.forEach((values, index) => {

@@ -7,7 +7,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build:css": "./combine-files.js css/ build/vanilla-beans.css \"\n\n\" && cp build/vanilla-beans.css docs/vanilla-beans.css",
     "build:js": "./combine-files.js src/ build/vanilla-beans.js \"\n\n\" && uglifyjs --compress -o build/vanilla-beans.min.js -- build/vanilla-beans.js && cp build/vanilla-beans.min.js docs/vanilla-beans.min.js",
-    "build": "mkdir -p build && npm run build:js && npm run build:css",
+    "build:docs": "./node_modules/jsdoc/jsdoc.js src -r -d ./docs/api -c ./jsdocs-config.json --verbose",
+    "build": "mkdir -p build && npm run build:js && npm run build:css && npm run build:docs",
     "watch:js": "onchange \"src/**/*.js\" -- npm run build",
     "watch": "npm-run-all --parallel watch:*"
   },
@@ -22,7 +23,9 @@
   },
   "homepage": "https://github.com/kr4ft3r/vanilla-beans#readme",
   "devDependencies": {
+    "clean-jsdoc-theme": "^4.3.0",
     "combine-files": "^1.1.8",
+    "jsdoc": "^4.0.4",
     "minify": "^11.1.1",
     "onchange": "^7.1.0",
     "uglify-js": "^3.17.4"

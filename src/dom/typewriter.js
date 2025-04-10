@@ -1,3 +1,6 @@
+/**
+ * DOM widget for displaying text by animating a typewriter effect.
+ */
 class Typewriter {
         /**
          * @param {Element} textElem Container for text
@@ -56,6 +59,9 @@ class Typewriter {
                         this.textElem.innerHTML = `${isSpecial ? this.visibleBuffer : this._withLastCharSpan(this.visibleBuffer)}<span style="visibility:hidden;">${this.hiddenBuffer}</span>`;
                 }
         }
+        /**
+         * Skips the animation and shows full text.
+         */
         skip() {
                 let textArr = this.text.split('');
                 let chars = textArr.slice(this.head);// '';
