@@ -5,9 +5,11 @@
  *   method where parameter passed is the key code.
  *
  * Example:
+ * ```
  * let input = new Input('game');
  * Events.instance.registerEventListener(obj, 'gameKeyDown');
  * obj.onGameKeyDown = (code) => {console.log(code + ' key down')} // Usually you will dispatch another event here
+ * ```
  */
 class Input {
         constructor(name) {

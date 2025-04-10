@@ -1,5 +1,7 @@
 /**
  * Simple collision-checking grid with evenly distributed number of equal cells.
+ * It will work with any type of object, as long as we can provide its bounding box (positions of top-left and
+ * bottom-rigth points relative to the container).
  */
 class FixedResolutionGrid {
         /**
@@ -32,11 +34,19 @@ class FixedResolutionGrid {
                 if (y >= this.height) return undefined;
                 return this.cells[y][x];
         }
+        /**
+         * @param {*} value Object to start checking for collisions
+         * @param {BoundingBoxPoints} boundingBox Object's bounding box points relative to container
+         */
         insert(value, boundingBox) {
                 let cell = this._getCell(boundingBox);
                 if (cell === undefined) return;
                 cell.push(value);
         }
+        /**
+         * @param {*} value Object to stop checking for collisions
+         * @param {BoundingBoxPoints} boundingBox Object's bounding box points relative to container
+         */
         remove(value, boundingBox) {
                 let cell = this._getCell(boundingBox);
                 if (cell === undefined) return;
@@ -50,9 +60,8 @@ class FixedResolutionGrid {
         /**
          * Updates object's coordinates in the grid. Call *before* changing the object's position.
          * @param {Object} value Object being updated
-         * @param {Object} boundingBox {x1,y1,x2,y2} bounding box position BEFORE updating
+         * @param {BoundingBoxPoints} boundingBox Bounding box position BEFORE updating
          * @param {Object} movement {x,y} vector of object's XY translation that will happen this frame
-         * @returns 
          */
         update(value, boundingBox, movement) {
                 if (movement.x === 0.0 && movement.y === 0.0) return; // No change
@@ -82,8 +91,8 @@ class FixedResolutionGrid {
         }
         /**
          * Get all hits at a point, using the provided pointCollisionTest.
-         * @param {Object} point {x,y}
-         * @returns 
+         * @param {{x: Number, y: Number}} point
+         * @returns {Object[]}
          */
         getAtPoint(point) {
                 const [x, y] = this._getCoordsAtPoint(point.x, point.y);
@@ -99,8 +108,8 @@ class FixedResolutionGrid {
         /**
          * Get all elements the given element is colliding with, using the provided elementsCollisionTest.
          * @param {Object} value Grid element being tested
-         * @param {*} boundingBox {x1, y1, x2, y2} The element's bounding box
-         * @returns 
+         * @param {BoundingBox} boundingBox {x1, y1, x2, y2} The element's bounding box
+         * @returns {Object[]}
          */
         getCollisions(value, boundingBox) {
                 const cellX1 = Math.floor(boundingBox.x1 / this.cellSize);
@@ -130,7 +139,7 @@ class FixedResolutionGrid {
 /**
  * @callback FixedResolutionGrid~pointCollisionTest
  * @param {Object} object Element in the grid, should probably contain a way to get bounding box
- * @param {Object} point {x,y} Point of test, {x|0..cellSize*gridWidth}, {y|0..cellSize*gridHeight}
+ * @param {{x: Number, y: Number}} point Point of test, {x|0..cellSize*gridWidth}, {y|0..cellSize*gridHeight}
  */
 /**
  * @callback FixedResolutionGrid~elementsCollisionTest

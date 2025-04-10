@@ -1,3 +1,16 @@
+/**
+ * Perlin noise by Stefan Gustavson
+ * 
+ * Example use:
+ * ```
+ * Noise.seed(Math.random());
+ * for (var x = 0; x < 100; x++)
+ *   for (var y = 0; y < 100; y++)
+ *     something[x][y] = Noise.simplex2(x /100, y / 100);
+ * ```
+ * @namespace Noise 
+ */
+
 /*
  * A speed-improved perlin and simplex noise algorithms for 2D.
  *
@@ -57,6 +70,12 @@
 
   // This isn't a very good seeding function, but it works ok. It supports 2^16
   // different seed values. Write something better if you need more seeds.
+  /**
+   * @function seed
+   * @memberof Noise
+   * @param {Number} seed 
+   * @static
+   */
   module.seed = function(seed) {
     if(seed > 0 && seed < 1) {
       // Scale the seed out
@@ -96,7 +115,15 @@
   var F3 = 1/3;
   var G3 = 1/6;
 
-  // 2D simplex noise
+  /**
+   * 2D simplex noise
+   * @function simplex2
+   * @memberof Noise
+   * @param {Number} xin 
+   * @param {Number} yin 
+   * @returns {Number}
+   * @static
+   */
   module.simplex2 = function(xin, yin) {
     var n0, n1, n2; // Noise contributions from the three corners
     // Skew the input space to determine which simplex cell we're in
