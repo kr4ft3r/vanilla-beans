@@ -6,28 +6,38 @@ class Typewriter {
          * @param {Element} textElem Container for text
          */
         constructor(textElem) {
+                /** 
+                 * DOM element that contains text
+                 * @type {Element} */
                 this.textElem = textElem;
+                /** 
+                 * Can be safely used to pause and unpause the typewriter
+                 * @type {bool} */
                 this.running = false;
-                this.delay = 0.1;
-                this.text = "";
-                this.length = 0;
-                this.head = 0;
-                this.time = 0.0;
+                /** 
+                 * Delay in seconds before next character is written
+                 * @type {number} */
+                this.delay = 0.05;
+
+                this._text = "";
+                this._length = 0;
+                this._head = 0;
+                this._time = 0.0;
                 this.headStyle = "normal"; //TODO style
-                this.lineBreaks = [];
+                this._lineBreaks = [];
         }
         /**
          * @param {String} text Text to start printing
          */
         write(text) {
                 this.running = true;
-                this.text = this._parse(text);
+                this._text = this._parse(text);
                 this.visibleBuffer = '';
-                this.hiddenBuffer = this.text;
-                this.length = this.text.length;
-                this.head = -1;
+                this.hiddenBuffer = this._text;
+                this._length = this._text.length;
+                this._head = -1;
                 this.headStyle = "normal";
-                this.time = 0.0;
+                this._time = 0.0;
                 this.textElem.innerHTML = "";
         }
         /**
@@ -35,14 +45,12 @@ class Typewriter {
          */
         update(deltaTime) {
                 if (!this.running) return;
-                this.time += deltaTime;
-                //console.log("A");
-                if (this.time >= this.delay) {
-                        //console.log("B");
+                this._time += deltaTime;
+                if (this._time >= this.delay) {
                         let char = '';
-                        this.time = 0.0;
-                        this.head++;
-                        if (this.head >= this.length) {
+                        this._time = this._time - this.delay; 
+                        this._head++;
+                        if (this._head >= this._length) {
                                 this.running = false;
                                 this.textElem.innerHTML = `${this.visibleBuffer}<span style="visibility:hidden;">${this.hiddenBuffer}</span>`;
                                 return;
@@ -51,7 +59,7 @@ class Typewriter {
                         let isSpecial = true;
                         if (char === '') {
                                 isSpecial = false;
-                                char = this.text[this.head];
+                                char = this._text[this._head];
                                 this.hiddenBuffer = this.hiddenBuffer.substring(1);
                         }
                         this.visibleBuffer += char;
@@ -63,14 +71,14 @@ class Typewriter {
          * Skips the animation and shows full text.
          */
         skip() {
-                let textArr = this.text.split('');
-                let chars = textArr.slice(this.head);// '';
+                let textArr = this._text.split('');
+                let chars = textArr.slice(this._head);// '';
                 while (true) {
-                        this.head++;
-                        if (this.head >= this.length) break;
+                        this._head++;
+                        if (this._head >= this._length) break;
                         let char = this._headGetSpecialChar();
                         if (char === '') {
-                                char = this.text[this.head];
+                                char = this._text[this._head];
                                 this.hiddenBuffer = this.hiddenBuffer.substring(1);
                         }
                         this.visibleBuffer += char;
@@ -78,18 +86,19 @@ class Typewriter {
                 this.textElem.innerHTML = `${this.visibleBuffer}<span style="visibility:hidden;">${this.hiddenBuffer}</span>`;
                 
                 this.running = false;
-                this.time = 0.0;
+                this._time = 0.0;
         }
         /**
+         * @private
          * @param {String} text 
          * @returns {String}
          */
         _parse(text) {
-                this.lineBreaks = [];
+                this._lineBreaks = [];
                 let pattern = '\n';
                 let i = text.indexOf(pattern);
                 while (i !== -1) {
-                        this.lineBreaks.push(i);
+                        this._lineBreaks.push(i);
                         text = text.split('');
                         text.splice(i, 1);
                         text = text.join('');
@@ -98,19 +107,21 @@ class Typewriter {
                 return text;
         }
         /**
+         * @private
          * @returns {string} Empty string or special element to inject
          */
         _headGetSpecialChar() {
                 let char = '';
-                if (this.lineBreaks.includes(this.head)) {
+                if (this._lineBreaks.includes(this._head)) {
                         char = "<br>";
-                        this.lineBreaks.splice(
-                                this.lineBreaks.indexOf(this.head), 1);
-                        this.head--;
+                        this._lineBreaks.splice(
+                                this._lineBreaks.indexOf(this._head), 1);
+                        this._head--;
                 }
                 return char;
         }
         /**
+         * @private
          * @param {string} text 
          */
         _withLastCharSpan(text) {

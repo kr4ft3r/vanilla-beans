@@ -66,7 +66,7 @@ class Sprite {
         }
         toHtml() {
                 return `
-                &lt;div id="sprite_${this.definition.id}_${this.id}" class="vb__sprite"
+                &lt;div id="sprite__${this.definition.id}__${this.id}" class="vb__sprite"
                 style="background-image:url(${this.definition.imagePath});width:${Math.round(this.getWidth())}px;height:${Math.round(this.getHeight())}px;
                 background-size: ${Math.round(this.getWidth())}px ${Math.round(this.getHeight())}px;
                 transform: translate(${this.transform.position.x}${this.transform.positionUnit}, ${this.transform.position.y}${this.transform.positionUnit}) rotate(${this.transform.rotation}${this.transform.rotationUnit})"
@@ -78,7 +78,7 @@ class Sprite {
          */
         update() {
                 if (this.domElement === null) return;
-                this.domElement = document.getElementById('sprite_'+this.definition.id+"_"+this.id);
+                this.domElement = document.getElementById('sprite__'+this.definition.id+"__"+this.id);
                 let elem = this.domElement;
                 elem.style.width = this.getWidth() + 'px';
                 elem.style.height = this.getHeight() + 'px';
@@ -118,7 +118,7 @@ Sprite.addToContainer = function (containerElem, sprite) {
         sprite.container = containerElem;
         let cs = containerElem.querySelectorAll(":scope > .vb__sprite");//containerElem.children;
         for (let i = 0; i &lt; cs.length; i++) {
-                let id = cs[i].id.split("_")[2];
+                let id = cs[i].id.split("__")[2];
                 let spr = Sprite.idMap.get(id);
                 spr.domElement = cs[i];
         }
@@ -129,7 +129,7 @@ Sprite.addToContainer = function (containerElem, sprite) {
  */
 Sprite.removeFromContainer = function (sprite) {
         if (sprite.container === null) return;
-        let spriteElem = sprite.domElement; //document.getElementById("sprite_" + sprite.definition.id + "_" + sprite.id);
+        let spriteElem = sprite.domElement;
         if (spriteElem === null) return;
         spriteElem.remove();
         sprite.domElement = null;
