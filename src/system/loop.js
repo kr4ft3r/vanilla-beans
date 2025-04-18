@@ -79,7 +79,7 @@ class Loop {
          */
         pushToActionQueue(action) {
                 if (Array.isArray(action))
-                        this.loopCallbackQueue = {...this.loopCallbackQueue, ...action}
+                        this.loopCallbackQueue = [...this.loopCallbackQueue, ...action]
                 else this.loopCallbackQueue.push(action);
                 this.currentCallbackQueue = this.loopCallbackQueue;
         }
