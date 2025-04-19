@@ -71,7 +71,7 @@ class StoryWindow {
                 this.writeNextSegment();
         }
         /**
-         * Starts typing next segment of a sequence, will be called if dispatching `storyWindowSkippedRequested`.
+         * Starts typing next segment of a sequence, will be called if dispatching `storyWindowSkipRequested`.
          */
         writeNextSegment() {
                 if (this.sequence.length == 0) return;
