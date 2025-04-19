@@ -6,6 +6,13 @@
  */
 class StoryWindow {
         /**
+         * Optional object that may be sent to a sequence instead of a string.
+         * @typedef {Object} StoryWindow~StorySegment
+         * @property {string} text
+         * @property {function} [action] Action to run before text is printed
+         */
+
+        /**
          * 
          * @param {Element} windowElem 
          * @param {Element} textElem 
@@ -59,7 +66,7 @@ class StoryWindow {
         }
         /**
          * 
-         * @param {Array} sequence Array of objects containing `text` (string) and optional `action` (callback) that will be called before requesting write
+         * @param {string[]|StoryWindow~StorySegment[]} sequence Array of objects containing `text` (string) and optional `action` (callback) that will be called before requesting write
          */
         writeSequence(sequence) {
                 this.sequence = sequence;

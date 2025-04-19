@@ -36,7 +36,7 @@ class Sprite {
         /**
          * @param {string} id 
          * @param {SpriteDefinition} spriteDefinition 
-         * @param {Transform} transform 
+         * @param {Sprite~Transform} transform 
          */
         constructor(id, spriteDefinition, transform) {
                 this.id = id;
