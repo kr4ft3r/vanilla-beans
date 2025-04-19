@@ -29,7 +29,7 @@ class Loop {
          */
         
         /**
-         * @param {FrameAction|FrameAction[]} defaultLoopCallback Callback or an array of callbacks that will run each frame
+         * @param {Loop~FrameAction|Loop~FrameAction[]} defaultLoopCallback Callback or an array of callbacks that will run each frame
          * @param {object} defaultState Arbitrary state object that will be passed to frameAction callbacks
          * @param {object} settings
          * @param {bool} settings.pauseOnHide Whether the time should stop when browser page loses focus, highly recommended for real-time games to avoid bugs caused by browser memory optimizations, default true
@@ -77,7 +77,7 @@ class Loop {
          * Append one or more default actions that will run each frame.
          * Currently the only way to remove specific actions is to have them named and set them to falsey values, the system will remove them from the queue.
          * 
-         * @param {FrameAction|FrameAction[]} action Single frame action callback or an array
+         * @param {Loop~FrameAction|Loop~FrameAction[]} action Single frame action callback or an array
          */
         pushToActionQueue(action) {
                 if (Array.isArray(action))

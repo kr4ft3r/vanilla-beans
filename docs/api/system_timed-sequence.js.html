@@ -11,7 +11,7 @@ class TimedSequence {
          * A segment of a sequence that can be managed by the TimedSequence.
          * @typedef {Object} TimedSequence~TimedSequenceSegment
          * @property {Number} duration Duration in seconds until sequence should switch to the next segment
-         * @property {SequenceSegmentAction} action Callback to run when segment starts
+         * @property {TimedSequence~SequenceSegmentAction} action Callback to run when segment starts
          * @property {string} [label] A way to have named segments
          * @property {string} [goto] Instead of the next segment in the sequence, switch to the segment specified by label when this one is done
          */
@@ -23,7 +23,7 @@ class TimedSequence {
          */
         
         /**
-         * @param {TimedSequenceSegment[]} sequence Array of segments that define the sequence
+         * @param {TimedSequence~TimedSequenceSegment[]} sequence Array of segments that define the sequence
          * @param {bool} [loop] Whether sequence should loop back to the first segment after the last is done
          * @param {*} [target] Optional target parameter passed to callbacks
          */
