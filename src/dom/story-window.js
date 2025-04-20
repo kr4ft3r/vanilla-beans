@@ -26,6 +26,7 @@ class StoryWindow {
                 this.visible = false;
                 this.settings = {...StoryWindow.defaultSettings, ...settings}
                 this.sequence = [];
+                this._inputDelayCounter = 0.0;
                 if (this.settings.handleSkipEvent && Events !== undefined && Events.instance !== undefined) {
                         Events.instance.createEventOnce('storyWindowSkipRequested');
                         Events.instance.registerEventListener(this, 'storyWindowSkipRequested');
@@ -87,6 +88,10 @@ class StoryWindow {
          */
         update(deltaTime) {
                 this.typewriter.update(deltaTime);
+                if (this.isDelayActive()) {
+                        this._inputDelayCounter -= deltaTime;
+                        if (this._inputDelayCounter <= 0.0) this._inputDelayCounter = 0.0;
+                }
         }
         /**
          * Wrapper for `typewriter.skip()`.
@@ -94,8 +99,23 @@ class StoryWindow {
         skip() {
                 this.typewriter.skip();
         }
+        /**
+         * @returns {boolean} Whether the input delay timer is on, which would mean input events are still being blocked.
+         */
+        isDelayActive() {
+                return this._inputDelayCounter > 0.0;
+        }
+        /**
+         * @returns {number} Proportion (0...1.0) of input delay timer progress. If delay is not active returns 1.0.
+         */
+        getDelayTimerProgress() {
+                if (this._inputDelayCounter == 0.0) return 1.0;
+                return this._inputDelayCounter / this.settings.inputDelay;
+        }
         onStoryWindowSkipRequested() {
                 if (this.settings.handleSkipEventOnlyIfActive && StoryWindow.activeWindow != this) return;
+                if (this._inputDelayCounter > 0.0) return;
+                this._inputDelayCounter = this.settings.inputDelay;
                 if (this.typewriter.running)
                         this.skip();
                 else if (this.sequence.length > 0)
@@ -110,4 +130,5 @@ StoryWindow.defaultSettings = {
         handleSkipEvent: true,
         handleSkipEventOnlyIfActive: true,
         skipAlsoCloses: true,
+        inputDelay: 0.5,
 }
