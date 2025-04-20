@@ -4,6 +4,15 @@
  */
 class StoryWindow {
         /**
+         * @typedef {Object} StoryWindow~Settings
+         * @property {number} inputDelay Float time in seconds before next input is accepted, to prevent accidental skipping of text, default 0.5
+         * @property {number} popInInputDelay Same as inputDelay but used to delay input when window first appears, you may want this higher than inputDelay, default 1.0
+         * @property {boolean} handleSkipEvent Whether to create event and listener for storyWindowSkipRequest, default true
+         * @property {boolean} handleSkipEventOnlyIfActive Whether the storyWindowSkipRequest should be ignored if another story window is active, default true
+         * @property {boolean} skipAlsoCloses Whether storyWindowSkipRequest event will also call popOut if no more text to print, otherwise you have to implement closing yourself, default true
+         */
+
+        /**
          * Optional object that may be sent to a sequence instead of a string.
          * @typedef {Object} StoryWindow~StorySegment
          * @property {string} text
@@ -16,7 +25,7 @@ class StoryWindow {
          * @param {Element} textElem 
          * @param {function} popInCallback 
          * @param {function} popOutCallback 
-         * @param {object} settings 
+         * @param {StoryWindow~Settings} settings 
          */
         constructor(windowElem, textElem, popInCallback, popOutCallback, settings) {
                 this.windowElem = windowElem;
@@ -43,6 +52,7 @@ class StoryWindow {
         popIn(data) {
                 this.visible = true;
                 StoryWindow.activeWindow = this;
+                this._inputDelayCounter = this.settings.popInInputDelay;
                 if (this.popInCallback !== null) this.popInCallback(data, this);
         }
         /**
@@ -126,9 +136,11 @@ class StoryWindow {
 }
 /** @type {?StoryWindow} */
 StoryWindow.activeWindow = null;
+/** @type {StoryWindow~Settings} */
 StoryWindow.defaultSettings = {
+        inputDelay: 0.5,
+        popInInputDelay: 1.0,
         handleSkipEvent: true,
         handleSkipEventOnlyIfActive: true,
         skipAlsoCloses: true,
-        inputDelay: 0.5,
 }
