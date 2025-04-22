@@ -191,11 +191,43 @@
                                                 sw.windowElem.style.display = "block";
                                                 sw.windowElem.style.transform = "translate(0px, 600px)";
                                                 sw.windowElem.style.opacity = "0.9";
-                                                sw.writeSequence([
-                                                        "Hello, hello, hello... Hello **again**?"+
-                                                        "\nYou can press SPACE to skip all this typing.\nThis is a story window, btw. This time with proper pre-set breaking of text.",
+                                                sw.loadTree([
+                                                        // This segment has a label that can be used for `goto`
+                                                        {
+                                                                text: "Hello, hello, hello... Hello **again**?"+
+                                                                "\nYou can press SPACE to skip all this typing.\nThis is a story window, btw. This time with proper pre-set breaking of text.",
+                                                                label: "start",
+                                                        },
                                                         
-                                                        "By the way, typewriter was separated from StoryWindow, and to make StoryWindow more useful you can now send it a sequence of texts with optional callbacks.\nHit SPACE to close"
+                                                        // Sequence segments can be just strings as well:
+                                                        "Typewriter was separated from StoryWindow, StoryWindow is now managing sequences of texts and branching stories along with optional callbacks.\nHit SPACE to continue",
+
+                                                        // But you will need a segment object if it contains options:
+                                                        {
+                                                                text: "By the way, now you have OPTIONS, you know?\nInteractivity is what it's all about!",
+                                                                options: [
+                                                                        // Simple option as a string that matches the default pattern of label|text:
+                                                                        "start|Can you repeat everything you just said?",
+                                                                        // Option as more complex object example:
+                                                                        {
+                                                                                text: "Make hearts go slower!",
+                                                                                action: () => {window.heartXSpeed -= 100;},
+                                                                                condition: () => {return window.heartXSpeed > 100},
+                                                                        },
+                                                                        // If goto label doesn't exist, story will exit instead of continuing
+                                                                        {
+                                                                                text: "Lovely, now please close this window so I can enjoy the rain drops",
+                                                                                goto: "",
+                                                                        },
+                                                                ],
+                                                                label: "options_example",
+                                                        },
+
+                                                        // If reached this far go back to segment with options
+                                                        {
+                                                                text: "Yeaah! Look at them hearts go wild with how slightly slower they are now!",
+                                                                goto: "options_example",
+                                                        },
                                                 ]);
                                         },
                                         (data, sw) => {
@@ -295,11 +327,12 @@
                                 }
                         }
                         
+                        window.heartXSpeed = 300;
                         var behaviors = {
                                 'heart': (sprite, data, deltaTime) => {
                                         data.timeAlive += deltaTime;
                                         if (sprite.domElement === null) return;
-                                        let xMod = 300;
+                                        let xMod = window.heartXSpeed;
                                         if (sprite.transform.position.x >= 1024 - sprite.getWidth()) 
                                                 data.directionX = -1;
                                         else if (sprite.transform.position.x <= 0) 
@@ -426,24 +459,20 @@
                 </div>
                 </div>
                 
+                <!-- Making all clickable stuff top layer so we don't have to delegate -->
                 <div style="position:absolute; width: 100%; height: 100%; left: 0; top: 0; overflow:hidden;">
                 <div id="story-overlay" class="vb__window" style="width:1024px; height:768px; margin: 0 auto; position: relative;">
                         <div id="story-window" 
-                        style="display:block;position:absolute;width:200px;height:400px;background-color: midnightblue;color:antiquewhite;
+                        style="display:block;position:absolute;width:400px;height:400px;background-color: midnightblue;color:antiquewhite;
                         transform: translate(0px, 768px); transition: transform 1s, opacity 0.5s;">
                                 <div id="story-window-text" style="padding: 10px;"></div>
                         </div>
-                </div>
-                </div>
-                
-                <div style="position:absolute; width: 100%; height: 100%; left: 0; top: 0; overflow:hidden;">
-                        <div id="document" style="width:1024px; height:768px; margin: 0 auto; position: relative;">
-                                <div style="background-color: #F3E5AB; padding: 4px;position:absolute;width:176px;">
-                                        <a href="api/index.html" style="color:#2d1903;text-decoration:none;">Read API documentation</a>
-                                </div>
-                                <h1 style="display:block;position:absolute;top:-2px;">VANILLA BEANS</h1>
-                                
+                        <div style="background-color: #F3E5AB; padding: 4px;position:absolute;width:176px;">
+                                <a href="api/index.html" style="color:#2d1903;text-decoration:none;">Read API documentation</a>
                         </div>
+                        <h1 style="display:block;position:absolute;top:-2px;">VANILLA BEANS</h1>
                 </div>
+                </div>
+
         </body>
 </html>

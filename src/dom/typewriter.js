@@ -42,9 +42,10 @@ class Typewriter {
         }
         /**
          * @param {Number} deltaTime 
+         * @return {Number} State code: 0 = nothing to write, 1 = writing, -1 = wrote the final character on this update
          */
         update(deltaTime) {
-                if (!this.running) return;
+                if (!this.running) return 0;
                 this._time += deltaTime;
                 if (this._time >= this.delay) {
                         let char = '';
@@ -53,7 +54,7 @@ class Typewriter {
                         if (this._head >= this._length) {
                                 this.running = false;
                                 this.textElem.innerHTML = `${this.visibleBuffer}<span style="visibility:hidden;">${this.hiddenBuffer}</span>`;
-                                return;
+                                return -1;
                         }
                         char = this._headGetSpecialChar();
                         let isSpecial = true;
@@ -65,6 +66,8 @@ class Typewriter {
                         this.visibleBuffer += char;
                         
                         this.textElem.innerHTML = `${isSpecial ? this.visibleBuffer : this._withLastCharSpan(this.visibleBuffer)}<span style="visibility:hidden;">${this.hiddenBuffer}</span>`;
+
+                        return 1;
                 }
         }
         /**

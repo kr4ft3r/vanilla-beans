@@ -128,6 +128,7 @@ class FixedResolutionGrid {
                                 const x = cellsX[xi];
                                 if (x >= this.width) continue;
                                 const cell = this.cells[y][x];
+                                if (typeof cell === 'undefined') continue; // whatever
                                 for (let i = 0; i &lt; cell.length; i++) {
                                         if (cell[i] === value) continue;
                                         if (this.elementsCollisionTest(value, cell[i])) hits.push(cell[i]);
