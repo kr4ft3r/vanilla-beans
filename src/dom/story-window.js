@@ -1,6 +1,7 @@
 /**
  * Simple story-telling tool, depends on Typewriter class to display text.
- * Contains interface for managing the text container window and sending a sequence of texts with optional callbacks.
+ * Contains interface for managing the text container window, sequences of texts or branching narratives, 
+ * with optional callbacks.
  */
 class StoryWindow {
         /**
@@ -21,18 +22,19 @@ class StoryWindow {
         /**
          * Optional object that may be sent to a sequence instead of a string.
          * @typedef {Object} StoryWindow~StorySegment
-         * @property {string} text
+         * @property {string|function} text Text to display during this segment, or a function that returns it
          * @property {function} [action] Action to run before text is printed
          * @property {string} [label] Reference to this segment, may be used by StoryOption's or StorySegment's goto
-         * @property {string} [goto] Label of the next segment, otherwise it will be next one in the sequence
+         * @property {string|function} [goto] Label of the next segment, otherwise it will be next one in the sequence
+         * @property {function} [condition] Function that returns false if this segment should be skipped
          * @property {Array<string|StoryWindow~StoryOption>} [options] If segment contains player's choice set them here, either as strings that match optionQuickPattern or as StoryOption objects
          */
 
         /**
          * @typedef {Object} StoryWindow~StoryOption
-         * @property {string} text
-         * @property {function} [action]
-         * @property {string} [goto] Label of segment this option will lead to, if missing the sequence will simply continue
+         * @property {string|function} text
+         * @property {function} [action] Callback to run before text gets printed
+         * @property {string|function} [goto] Label of segment this option will lead to, if missing the sequence will simply continue
          * @property {function} [condition] Function that returns true if option should be on the list or false otherwise
          */
 
@@ -98,11 +100,15 @@ class StoryWindow {
         /**
          * Set this window to be active one and start typing given text.
          * 
-         * @param {string} text 
+         * @param {string|function} text 
          */
         write(text) {
                 StoryWindow.activeWindow = this;
-                this.typewriter.write(text);
+                const textStr = typeof text === 'function' ? text() : text;
+                if (typeof textStr !== 'string') {
+                        console.warn('Text provided to segment was not string');
+                }
+                this.typewriter.write(textStr);
         }
         /**
          * Start writing multi-segment story sequence. Will suffice when branching narrative is not required, 
@@ -136,14 +142,15 @@ class StoryWindow {
         /**
          * Starts typing next segment of a sequence, will be called if dispatching `storyWindowSkipRequested`.
          * 
-         * @param {?string} [goto] Label of segment that will be the next one
+         * @param {?string|?function} [goto] Label of segment that will be the next one
          */
         writeNextSegment(goto = null) {
+                if (goto !== null && typeof goto === 'function') goto = goto();
                 /** @type {StoryWindow~StorySegment} */
                 let segment;
                 
                 if (goto === null && this.currentSegment && this.currentSegment.goto) {
-                        goto = this.currentSegment.goto;
+                        goto = typeof this.currentSegment.goto === 'function' ? this.currentSegment.goto() : this.currentSegment.goto;
                 }
                 if (goto !== null) {
                         segment = this._segmentTable.get(goto);
@@ -162,6 +169,10 @@ class StoryWindow {
                         segment = this.sequence.shift();
                 }
                 this.currentSegment = segment;
+                if (this.currentSegment.condition && !this.currentSegment.condition()) {
+                        this.writeNextSegment();
+                        return;
+                }
                 if (segment.action) segment.action();
                 if (segment.text) this.write(segment.text)
                 else if (typeof(segment) === 'string') this.write(segment);
@@ -181,7 +192,7 @@ class StoryWindow {
                 }
         }
         /**
-         * Wrapper for `typewriter.skip()`.
+         * Skip the text typing anim and display options if there are any in current segment
          */
         skip() {
                 this.typewriter.skip();
@@ -249,7 +260,13 @@ class StoryWindow {
                 }
                 // Otherwise, do the built-in options draw procedure
 
-                const optionsHtml = options.map((opt, index) => this.settings.optionTemplateCallback(index, opt.text, opt)).join('');
+                const optionsHtml = options.map(
+                        (opt, index) => this.settings.optionTemplateCallback(
+                                index, 
+                                typeof opt.text === 'function' ? opt.text() : opt.text, 
+                                opt
+                        )
+                ).join('');
 
                 optionsContainer.innerHTML += `
                 ${this.settings.optionsHeader}

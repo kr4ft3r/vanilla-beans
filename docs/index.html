@@ -194,9 +194,10 @@
                                                 sw.loadTree([
                                                         // This segment has a label that can be used for `goto`
                                                         {
-                                                                text: "Hello, hello, hello... Hello **again**?"+
+                                                                text: "Hello, hello, hello... Hello!"+
                                                                 "\nYou can press SPACE to skip all this typing.\nThis is a story window, btw. This time with proper pre-set breaking of text.",
                                                                 label: "start",
+                                                                condition: () => !window.doSkipStart,
                                                         },
                                                         
                                                         // Sequence segments can be just strings as well:
@@ -205,18 +206,27 @@
                                                         // But you will need a segment object if it contains options:
                                                         {
                                                                 text: "By the way, now you have OPTIONS, you know?\nInteractivity is what it's all about!",
+                                                                // Reset the state that may get changed in this segment
+                                                                action: () => {window.doSkipStart = false;},
                                                                 options: [
                                                                         // Simple option as a string that matches the default pattern of label|text:
                                                                         "start|Can you repeat everything you just said?",
-                                                                        // Option as more complex object example:
+                                                                        // Option as more complex object examples:
+                                                                        {
+                                                                                text: "Please repeat but skip the very start.",
+                                                                                // Will go to 'start' but will skip it because of its condition check
+                                                                                action: () => {window.doSkipStart = true;},
+                                                                                goto: 'start'
+                                                                        },
                                                                         {
                                                                                 text: "Make hearts go slower!",
                                                                                 action: () => {window.heartXSpeed -= 100;},
                                                                                 condition: () => {return window.heartXSpeed > 100},
                                                                         },
-                                                                        // If goto label doesn't exist, story will exit instead of continuing
                                                                         {
-                                                                                text: "Lovely, now please close this window so I can enjoy the rain drops",
+                                                                                // Option text can also be a callback
+                                                                                text: () => "Lovely, now please close this window so I can enjoy the rain drops",
+                                                                                // If goto label doesn't exist, story will exit instead of continuing
                                                                                 goto: "",
                                                                         },
                                                                 ],
@@ -225,8 +235,10 @@
 
                                                         // If reached this far go back to segment with options
                                                         {
-                                                                text: "Yeaah! Look at them hearts go wild with how slightly slower they are now!",
-                                                                goto: "options_example",
+                                                                // Text can be provided by a function that returns a string!
+                                                                text: () => `Yeaah! Look at them hearts go wild with how slightly slower they are now!\nX axis speed set to: ${window.heartXSpeed}`,
+                                                                // goto can also be a callback
+                                                                goto: () => "options_example",
                                                         },
                                                 ]);
                                         },
