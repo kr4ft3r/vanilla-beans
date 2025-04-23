@@ -67,10 +67,22 @@
                         var testInputListener = {
                                 onGameKeyDown: (code) => {
                                         console.log(code + " UP");
+                                        if (code === 80) {
+                                                Events.instance.dispatch('pauseChangeRequested', !window.mainLoop.isPaused);
+                                                return;
+                                        }
+
+                                        if (window.mainLoop.isPaused) return;
+
+                                        if (code >= 49 && code <= 57) { // Number 1..9 lets use them for story options
+                                                let optionIndex = code - 49; // -48 and zero-based
+                                                if (optionIndex < StoryWindow.activeWindow.currentOptions.length) {
+                                                        StoryWindow.selectOption(optionIndex);
+                                                        return;
+                                                }
+                                        }
+
                                         switch (code) {
-                                                case 80: // p
-                                                        Events.instance.dispatch('pauseChangeRequested', !window.mainLoop.isPaused)
-                                                        break;
                                                 case 32: // space
                                                         Events.instance.dispatch('storyWindowSkipRequested');
                                                         break;
@@ -205,7 +217,7 @@
 
                                                         // But you will need a segment object if it contains options:
                                                         {
-                                                                text: "By the way, now you have OPTIONS, you know?\nInteractivity is what it's all about!",
+                                                                text: "By the way, now you have OPTIONS, you know?\nUse mouse or number keys to choose an option!",
                                                                 // Reset the state that may get changed in this segment
                                                                 action: () => {window.doSkipStart = false;},
                                                                 options: [

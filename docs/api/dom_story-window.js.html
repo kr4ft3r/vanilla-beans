@@ -301,7 +301,7 @@ StoryWindow.defaultSettings = {
         optionQuickPattern: /^(.*?)\|([\s\S]*)$/,
         optionsHeader: "&lt;ul style='list-style:none;'>",
         optionsFooter: "&lt;/ul>",
-        optionTemplateCallback: (index, text, option) => `&lt;li onclick="StoryWindow.selectOption(${index});" style="cursor:pointer;">${index} - ${text}&lt;/li>`,
+        optionTemplateCallback: (index, text, option) => `&lt;li onclick="StoryWindow.selectOption(${index});" style="cursor:pointer;">${index+1} - ${text}&lt;/li>`,
         customOptionsDrawCallback: null,
         selectedOptionWaitForAnimationDoneEvent: false,
 }
