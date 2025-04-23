@@ -278,7 +278,7 @@ class StoryWindow {
                 this._waitingForPrompt = true;
         }
         _parseQuickOption(opt) {
-                const optParts = opt.match(this.settings.optionQuickPattern);
+                const optParts = this.settings.optionQuickPattern ? opt.match(this.settings.optionQuickPattern) : [null, null, text];
                 if (optParts.length < 3) {
                         console.warn('Failed parsing quick option pattern at index '+index);
                         opt = {text: optParts[1] ?? '-UNKNOWN-'}
