@@ -1,11 +1,10 @@
 /**
  * DOM-based sprite implementation. See demo for usage.
- * TODO proper transform object?
  * 
  * Usage (single sprite):
  * - Create new Sprite object, providing unique ID string, SpriteDefinition instance,
  * and transform object with properties position{x,y}, and optional properties: 
- * scale{width,height}, rotation, positionUnit, rotationUnit (units are CSS units of position/roation).
+ * scale{x,y}, rotation, positionUnit, rotationUnit (units are CSS units of position/roation).
  * Defaults are `px` and `rad`.
  * - Add to container: Sprite.addToContainer(container, sprite) where container is a
  * DOM object with relative position. This will draw the sprite on the screen.
@@ -14,10 +13,36 @@
  * - If doing collision checks: sprite.getBoundingBox() to get object with {x1,y1,x2,y2}
  */
 class Sprite {
+        
+        /**
+         * Representation of sprite's location, size, and rotation.
+         * Changes to this object will be visible only after call to the sprite's `update()`.
+         * @typedef {Object} Sprite~Transform
+         * @property {{x:Number, y:Number}} position Location of pivot relative to its container 
+         * @property {{x:Number, y:Number}} [scale] Size scaling factor
+         * @property {Number} [rotation] Rotation relative to +x
+         * @property {string} [positionUnit] CSS unit to work with for position, only `px` is tested so far and is default
+         * @property {string} [rotationUnit] CSS unit to work with for rotations, such as `rad` or `deg`, default `rad`
+         */
+        
+        /**
+         * @typedef {Object} BoundingBoxPoints
+         * @property {Number} x1 Top-left point X position
+         * @property {Number} y1 Top-left point Y position
+         * @property {Number} x2 Bottom-right point X position
+         * @property {Number} y2 Bottom-right point Y position
+         */
+        
+        /**
+         * @param {string} id 
+         * @param {SpriteDefinition} spriteDefinition 
+         * @param {Sprite~Transform} transform 
+         */
         constructor(id, spriteDefinition, transform) {
                 this.id = id;
                 this.definition = spriteDefinition;
                 this.transform = transform;
+                if (!('scale' in transform)) this.transform.scale = {x: 1.0, y: 1.0};
                 if (!('rotation' in transform)) this.transform.rotation = 0;
                 if (!('positionUnit' in transform)) this.transform.positionUnit = 'px';
                 if (!('rotationUnit' in transform)) this.transform.rotationUnit = 'rad';
@@ -27,8 +52,8 @@ class Sprite {
                 Sprite.idMap.set(id, this);
         }
         /**
-         * Override for non-standard bounding box sizes.
-         * @returns object with bounding box's top-left and bottom-right points
+         * Get bounding box with scaling applied. Override for non-standard bounding box sizes.
+         * @returns {BoundingBoxPoints} Bounding box's points relative to the sprite's container
          */
         getBoundingBox() {
                 return {
@@ -39,16 +64,19 @@ class Sprite {
         }
         toHtml() {
                 return `
-                <div id="sprite_${this.definition.id}_${this.id}" class="vb__sprite"
+                <div id="sprite__${this.definition.id}__${this.id}" class="vb__sprite"
                 style="background-image:url(${this.definition.imagePath});width:${Math.round(this.getWidth())}px;height:${Math.round(this.getHeight())}px;
                 background-size: ${Math.round(this.getWidth())}px ${Math.round(this.getHeight())}px;
                 transform: translate(${this.transform.position.x}${this.transform.positionUnit}, ${this.transform.position.y}${this.transform.positionUnit}) rotate(${this.transform.rotation}${this.transform.rotationUnit})"
                 ></div>
                 `;
         }
+        /**
+         * Must be called after making any changes on the sprite to re-render it.
+         */
         update() {
                 if (this.domElement === null) return;
-                this.domElement = document.getElementById('sprite_'+this.definition.id+"_"+this.id);
+                this.domElement = document.getElementById('sprite__'+this.definition.id+"__"+this.id);
                 let elem = this.domElement;
                 elem.style.width = this.getWidth() + 'px';
                 elem.style.height = this.getHeight() + 'px';
@@ -77,24 +105,37 @@ class Sprite {
                 }; 
         }
 }
+/**
+ * Must be called to make sprite visible. Currently there can be only one container per sprite.
+ * @param {Element} containerElem DOM Element that will be container for this sprite
+ * @param {Sprite} sprite 
+ */
 Sprite.addToContainer = function (containerElem, sprite) {
         if (sprite.container !== null) Sprite.removeFromContainer(sprite);
         containerElem.innerHTML += sprite.toHtml();
         sprite.container = containerElem;
         let cs = containerElem.querySelectorAll(":scope > .vb__sprite");//containerElem.children;
         for (let i = 0; i < cs.length; i++) {
-                let id = cs[i].id.split("_")[2];
+                let id = cs[i].id.split("__")[2];
                 let spr = Sprite.idMap.get(id);
                 spr.domElement = cs[i];
         }
 }
+/**
+ * Immediately removes the sprite from the containing DOM Element.
+ * @param {Sprite} sprite 
+ */
 Sprite.removeFromContainer = function (sprite) {
         if (sprite.container === null) return;
-        let spriteElem = sprite.domElement; //document.getElementById("sprite_" + sprite.definition.id + "_" + sprite.id);
+        let spriteElem = sprite.domElement;
         if (spriteElem === null) return;
         spriteElem.remove();
         sprite.domElement = null;
 }
+/**
+ * Populated with sprites mapped by ID
+ * @type {HashTable}
+ */
 Sprite.idMap = new HashTable();
 
 /**
@@ -120,4 +161,8 @@ class SpriteDefinition {
                 SpriteDefinition.table.set(id, this);
         }
 }
+/**
+ * Populated with sprite definitions mapped by ID 
+ * @type {HashTable} 
+ * */
 SpriteDefinition.table = new HashTable();
