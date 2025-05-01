@@ -1,6 +1,6 @@
 {
   "name": "vanilla-beans",
-  "version": "0.0.2",
+  "version": "1.0.0-alpha",
   "description": "Libs for making browser games using vanilla JavaScript",
   "main": "index.js",
   "scripts": {
